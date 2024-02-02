@@ -1,7 +1,6 @@
 use ratatui::{
     prelude::Frame,
     symbols::Marker,
-    // style::Color,
     widgets::{canvas, Block, Borders},
 };
 

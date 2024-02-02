@@ -1,17 +1,18 @@
 pub mod app;
+pub mod board;
+pub mod config;
 pub mod event;
+pub mod tetromino;
 pub mod tui;
 pub mod ui;
 pub mod update;
-pub mod config;
-pub mod game;
 
 use anyhow::Result;
 use app::App;
 use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tui::Tui;
-use update::update;
+use update::{update, key_event_update};
 
 fn main() -> Result<()> {
     // Create the application.
@@ -30,8 +31,8 @@ fn main() -> Result<()> {
         tui.draw(&mut app)?;
         // Handle events.
         match tui.events.next()? {
-            Event::Tick => {}
-            Event::Key(key_event) => update(&mut app, key_event),
+            Event::Tick => update(&mut app),
+            Event::Key(key_event) => key_event_update(&mut app, key_event),
             Event::Mouse(_) => {}
             Event::Resize(_, _) => {}
         };

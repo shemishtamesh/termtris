@@ -1,4 +1,4 @@
-use crate::game::Board;
+use crate::board::Board;
 
 /// Application.
 #[derive(Debug, Default)]
@@ -14,9 +14,6 @@ impl App {
     pub fn new() -> Self {
         Self::default()
     }
-
-    /// Handles the tick event of the terminal.
-    pub fn tick(&self) {}
 
     /// Set should_quit to true to quit the application.
     pub fn quit(&mut self) {
