@@ -13,6 +13,7 @@ use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tui::Tui;
 use update::{update, key_event_update};
+use config::BASE_TICK_RATE;
 
 fn main() -> Result<()> {
     // Create the application.
@@ -21,7 +22,7 @@ fn main() -> Result<()> {
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(std::io::stderr());
     let terminal = Terminal::new(backend)?;
-    let events = EventHandler::new(250);
+    let events = EventHandler::new(BASE_TICK_RATE);
     let mut tui = Tui::new(terminal, events);
     tui.enter()?;
 

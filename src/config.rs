@@ -12,5 +12,8 @@ pub const fn tetromino_color(tetromino: &TetrominoShape) -> Color {
         TetrominoShape::Z => Color::Red,
     }
 }
+
 pub const BLOCK_SIZE: u16 = 2;
 pub const BOARD_SIZE: (usize, usize) = (10, 24);
+
+pub const BASE_TICK_RATE: u64 = 250;

@@ -1,5 +1,5 @@
 use crate::config::{tetromino_color, BOARD_SIZE};
-use crate::tetromino::{Tetromino, TetrominoShape};
+use crate::tetromino::{Direction, Tetromino, TetrominoPositionError, TetrominoShape};
 use ratatui::widgets::canvas::{Painter, Shape};
 
 #[derive(Debug, Clone, Copy)]
@@ -20,24 +20,41 @@ impl Board {
         Board::default()
     }
 
-    pub fn update(&mut self) {
-        if self
-            .current_tetromino
-            .get_full_position()
-            .iter()
-            .any(|(x, y)| {
-                *y == BOARD_SIZE.1 - 1 || matches!(self.grid[y + 1][*x], Cell::Occupied(_))
-            })
-        {
-            self.next_piece();
+    pub fn update(&mut self) -> Result<(), TetrominoPositionError> {
+        if self.check_collision((0, 1)) {
+            self.next_piece()?;
         }
-
         self.current_tetromino.update();
+        Ok(())
     }
 
-    fn next_piece(&mut self) {
-        // set current piece
-        self.current_tetromino.get_full_position()
+    fn check_collision(&self, position_diff: (isize, isize)) -> bool {
+        match self
+            .current_tetromino
+            .calculate_full_position(position_diff)
+        {
+            Ok(position) => position.iter().any(|(x, y)| {
+                *x >= BOARD_SIZE.0
+                    || *y >= BOARD_SIZE.1
+                    || matches!(self.grid[*y][*x], Cell::Occupied(_))
+            }),
+            Err(_) => true,
+        }
+    }
+
+    pub fn move_current_piece(
+        &mut self,
+        direction: Direction,
+    ) {
+        if !self.check_collision((direction.into(), 0)) {
+            self.current_tetromino.horizontal_move(direction);
+        }
+    }
+
+    fn next_piece(&mut self) -> Result<(), TetrominoPositionError> {
+        // fix current piece on the board
+        self.current_tetromino
+            .get_full_position()?
             .iter()
             .for_each(|(x, y)| {
                 self.grid[*y][*x] = Cell::Occupied(self.current_tetromino.get_shape());
@@ -50,6 +67,7 @@ impl Board {
             self.bag_index = 0;
         }
         self.current_tetromino = Tetromino::new(self.bag[self.bag_index]);
+        Ok(())
     }
 
     fn fill_bag(&mut self) {
@@ -68,7 +86,10 @@ impl Default for Board {
 }
 impl Shape for Board {
     fn draw(&self, painter: &mut Painter) {
-        let tetromino_positions = self.current_tetromino.get_full_position();
+        let tetromino_positions = self
+            .current_tetromino
+            .get_full_position()
+            .expect("negative tetromino position while drawing");
         for (y, row) in self.grid.iter().enumerate() {
             for (x, cell) in row.iter().enumerate() {
                 if tetromino_positions.contains(&(x, y)) {
@@ -76,7 +97,8 @@ impl Shape for Board {
                     continue;
                 }
                 match cell {
-                    Cell::Empty => {}
+                    // Cell::Empty => {},
+                    Cell::Empty => painter.paint(x, y, tetromino_color(&TetrominoShape::J)),
                     Cell::Occupied(shape) => painter.paint(x, y, tetromino_color(shape)),
                 }
             }
