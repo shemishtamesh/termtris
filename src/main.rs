@@ -9,11 +9,11 @@ pub mod update;
 
 use anyhow::Result;
 use app::App;
+use config::BASE_TICK_RATE;
 use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
 use tui::Tui;
-use update::{update, key_event_update};
-use config::BASE_TICK_RATE;
+use update::{key_event_update, update};
 
 fn main() -> Result<()> {
     // Create the application.

@@ -12,7 +12,8 @@ pub fn render(app: &mut App, f: &mut Frame) {
         canvas::Canvas::default()
             .block(
                 Block::default()
-                    .borders(Borders::LEFT | Borders::BOTTOM | Borders::RIGHT)
+                    .borders(Borders::ALL) // TODO: remove this when borders are drawn by the
+                    // board itself
                     .border_type(BorderType::QuadrantInside),
             )
             .x_bounds([0.0, (BLOCK_SIZE * 10) as f64])

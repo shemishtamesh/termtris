@@ -27,6 +27,11 @@ pub enum TetrominoShape {
     T,
     I,
 }
+impl Into<Tetromino> for TetrominoShape {
+    fn into(self) -> Tetromino {
+        Tetromino::new(self)
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub struct Position {
@@ -62,13 +67,41 @@ pub struct Tetromino {
 impl Tetromino {
     pub fn new(shape: TetrominoShape) -> Tetromino {
         match shape {
+            TetrominoShape::J => Tetromino {
+                shape,
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
+                orientation: [(0, 0), (0, 1), (1, 1), (2, 1)],
+            },
+            TetrominoShape::L => Tetromino {
+                shape,
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
+                orientation: [(0, 1), (1, 1), (2, 1), (2, 0)],
+            },
+            TetrominoShape::S => Tetromino {
+                shape,
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
+                orientation: [(0, 1), (1, 1), (1, 0), (2, 0)],
+            },
+            TetrominoShape::Z => Tetromino {
+                shape,
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
+                orientation: [(0, 0), (1, 0), (1, 1), (2, 1)],
+            },
+            TetrominoShape::O => Tetromino {
+                shape,
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
+                orientation: [(0, 0), (0, 1), (1, 1), (1, 0)],
+            },
+            TetrominoShape::T => Tetromino {
+                shape,
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
+                orientation: [(0, 1), (1, 1), (1, 0), (2, 1)],
+            },
             TetrominoShape::I => Tetromino {
                 shape,
-                // pos: Position::new(BOARD_SIZE.0 / 2, 0),
-                pos: Position::new(BOARD_SIZE.0 / 2 - 4, 0),
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
                 orientation: [(0, 1), (1, 1), (2, 1), (3, 1)],
             },
-            _ => unimplemented!(),
         }
     }
 
@@ -86,7 +119,6 @@ impl Tetromino {
     ) -> Result<[(usize, usize); 4], TetrominoPositionError> {
         let mut full_position = [(0, 0); 4];
         for (i, (x, y)) in self.orientation.iter().enumerate() {
-            // println!("{}, {}", x, diff.0);
             full_position[i] = (
                 usize::try_from(self.pos.x as isize + x + diff.0)?,
                 usize::try_from(self.pos.y as isize + y + diff.1)?,

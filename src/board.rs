@@ -1,5 +1,6 @@
 use crate::config::{tetromino_color, BOARD_SIZE};
 use crate::tetromino::{Direction, Tetromino, TetrominoPositionError, TetrominoShape};
+use rand::{seq::SliceRandom, thread_rng};
 use ratatui::widgets::canvas::{Painter, Shape};
 
 #[derive(Debug, Clone, Copy)]
@@ -42,10 +43,7 @@ impl Board {
         }
     }
 
-    pub fn move_current_piece(
-        &mut self,
-        direction: Direction,
-    ) {
+    pub fn move_current_piece(&mut self, direction: Direction) {
         if !self.check_collision((direction.into(), 0)) {
             self.current_tetromino.horizontal_move(direction);
         }
@@ -76,16 +74,19 @@ impl Board {
 }
 impl Default for Board {
     fn default() -> Self {
+        let starting_bag = new_bag();
         Board {
             grid: [[Cell::Empty; BOARD_SIZE.0]; BOARD_SIZE.1],
-            current_tetromino: Tetromino::new(TetrominoShape::I),
-            bag: new_bag(),
+            current_tetromino: starting_bag[0].into(),
+            bag: starting_bag,
             bag_index: 0,
         }
     }
 }
 impl Shape for Board {
     fn draw(&self, painter: &mut Painter) {
+        // TODO: draw the border here, it should be only bottom and sides, and the sides should
+        // be lower than the new tetromino
         let tetromino_positions = self
             .current_tetromino
             .get_full_position()
@@ -97,8 +98,7 @@ impl Shape for Board {
                     continue;
                 }
                 match cell {
-                    // Cell::Empty => {},
-                    Cell::Empty => painter.paint(x, y, tetromino_color(&TetrominoShape::J)),
+                    Cell::Empty => {}
                     Cell::Occupied(shape) => painter.paint(x, y, tetromino_color(shape)),
                 }
             }
@@ -107,6 +107,15 @@ impl Shape for Board {
 }
 
 fn new_bag() -> [TetrominoShape; 7] {
-    [TetrominoShape::I; 7]
-    // TODO: make this random
+    let mut bag = [
+        TetrominoShape::I,
+        TetrominoShape::J,
+        TetrominoShape::L,
+        TetrominoShape::O,
+        TetrominoShape::S,
+        TetrominoShape::T,
+        TetrominoShape::Z,
+    ];
+    bag.shuffle(&mut thread_rng());
+    bag
 }
