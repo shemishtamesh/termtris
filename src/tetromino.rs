@@ -3,6 +3,25 @@ use std::ops::{Add, AddAssign};
 
 use crate::config::BOARD_SIZE;
 
+const O_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
+    [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+    [(0, -1), (0, 0), (0, 0), (0, 0), (0, 0)],
+    [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0)],
+    [(-1, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+];
+const I_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
+    [(0, 0), (-1, 0), (2, 0), (-1, 0), (2, 0)],
+    [(-1, 0), (0, 0), (0, 0), (0, 1), (0, -2)],
+    [(-1, 1), (1, 1), (-2, 1), (1, 0), (-2, 0)],
+    [(0, 1), (0, 1), (0, 1), (0, -1), (0, 2)],
+];
+const JLSTZ_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
+    [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+    [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+    [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
+    [(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],
+];
+
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 pub enum Direction {
     Left,
@@ -63,44 +82,52 @@ pub struct Tetromino {
     shape: TetrominoShape,
     pos: Position,
     orientation: [(isize, isize); 4],
+    rotation_index: usize,
 }
 impl Tetromino {
     pub fn new(shape: TetrominoShape) -> Tetromino {
         match shape {
             TetrominoShape::J => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
-                orientation: [(0, 0), (0, 1), (1, 1), (2, 1)],
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                orientation: [(-1, -1), (-1, 0), (0, 0), (1, 0)],
+                rotation_index: 0,
             },
             TetrominoShape::L => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
-                orientation: [(0, 1), (1, 1), (2, 1), (2, 0)],
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                orientation: [(-1, 0), (0, 0), (1, 0), (1, -1)],
+                rotation_index: 0,
             },
             TetrominoShape::S => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
-                orientation: [(0, 1), (1, 1), (1, 0), (2, 0)],
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                orientation: [(-1, 0), (0, 0), (0, -1), (1, -1)],
+                rotation_index: 0,
             },
             TetrominoShape::Z => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
-                orientation: [(0, 0), (1, 0), (1, 1), (2, 1)],
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                orientation: [(-1, -1), (0, -1), (0, 0), (1, 0)],
+                rotation_index: 0,
             },
             TetrominoShape::O => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
-                orientation: [(0, 0), (0, 1), (1, 1), (1, 0)],
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                orientation: [(0, -1), (0, 0), (1, -1), (1, 0)],
+                rotation_index: 0,
             },
             TetrominoShape::T => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
-                orientation: [(0, 1), (1, 1), (1, 0), (2, 1)],
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                orientation: [(-1, 0), (0, 0), (0, -1), (1, 0)],
+                rotation_index: 0,
             },
             TetrominoShape::I => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 0),
-                orientation: [(0, 1), (1, 1), (2, 1), (3, 1)],
+                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                orientation: [(-1, 0), (0, 0), (1, 0), (2, 0)],
+                rotation_index: 0,
             },
         }
     }
@@ -113,7 +140,7 @@ impl Tetromino {
         self.pos
     }
 
-    pub fn calculate_full_position(
+    pub fn calc_full_pos(
         &self,
         diff: (isize, isize),
     ) -> Result<[(usize, usize); 4], TetrominoPositionError> {
@@ -144,6 +171,35 @@ impl Tetromino {
 
     pub fn horizontal_move(&mut self, direction: Direction) {
         self.pos += direction
+    }
+
+    pub fn rotate(
+        &mut self,
+        clockwise: bool,
+        offset_index: usize,
+    ) -> Result<(), TetrominoPositionError> {
+        self.orientation = self.orientation.map(|(x, y)| {
+            (
+                y * -(!clockwise as isize) + y * (clockwise as isize),
+                x * -(clockwise as isize) + x * (!clockwise as isize),
+            )
+        });
+
+        let offset = self.get_rotation_offsets()[self.rotation_index][offset_index];
+        usize::try_from(self.pos.x as isize + offset.0)?;
+        usize::try_from(self.pos.y as isize + offset.1)?;
+
+        self.rotation_index += clockwise as usize;
+        self.rotation_index %= 4;
+        Ok(())
+    }
+
+    fn get_rotation_offsets(&self) -> [[(isize, isize); 5]; 4] {
+        match self.shape {
+            TetrominoShape::O => O_ROTATION_OFFSETS,
+            TetrominoShape::I => I_ROTATION_OFFSETS,
+            _ => JLSTZ_ROTATION_OFFSETS,
+        }
     }
 }
 

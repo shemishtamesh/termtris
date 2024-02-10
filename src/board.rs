@@ -12,9 +12,9 @@ pub enum Cell {
 #[derive(Debug)]
 pub struct Board {
     grid: [[Cell; BOARD_SIZE.0]; BOARD_SIZE.1],
-    current_tetromino: Tetromino,
     bag: [TetrominoShape; 7],
     bag_index: usize,
+    pub current_tetromino: Tetromino,
 }
 impl Board {
     pub fn new() -> Board {
@@ -22,31 +22,41 @@ impl Board {
     }
 
     pub fn update(&mut self) -> Result<(), TetrominoPositionError> {
-        if self.check_collision((0, 1)) {
-            self.next_piece()?;
+        match self.current_tetromino.calc_full_pos((0, 1)) {
+            Ok(full_position) => {
+                if self.check_collision(full_position) {
+                    self.next_piece()?;
+                }
+            }
+            Err(_) => {
+                self.next_piece()?;
+            }
         }
         self.current_tetromino.update();
         Ok(())
     }
 
-    fn check_collision(&self, position_diff: (isize, isize)) -> bool {
-        match self
-            .current_tetromino
-            .calculate_full_position(position_diff)
-        {
-            Ok(position) => position.iter().any(|(x, y)| {
-                *x >= BOARD_SIZE.0
-                    || *y >= BOARD_SIZE.1
-                    || matches!(self.grid[*y][*x], Cell::Occupied(_))
-            }),
-            Err(_) => true,
+    pub fn move_current_piece(&mut self, direction: Direction) {
+        match self.current_tetromino.calc_full_pos((direction.into(), 0)) {
+            Ok(full_position) => {
+                if !self.check_collision(full_position) {
+                    self.current_tetromino.horizontal_move(direction);
+                }
+            }
+            Err(_) => {}
         }
     }
 
-    pub fn move_current_piece(&mut self, direction: Direction) {
-        if !self.check_collision((direction.into(), 0)) {
-            self.current_tetromino.horizontal_move(direction);
-        }
+    fn check_collision(&self, new_full_position: [(usize, usize); 4]) -> bool {
+        new_full_position.iter().any(|(x, y)| {
+            *x >= BOARD_SIZE.0
+                || *y >= BOARD_SIZE.1
+                || matches!(self.grid[*y][*x], Cell::Occupied(_))
+        })
+    }
+
+    pub fn rotate_current_piece(&mut self, clockwise: bool) {
+        self.current_tetromino.rotate(clockwise, 0);
     }
 
     fn next_piece(&mut self) -> Result<(), TetrominoPositionError> {
@@ -77,9 +87,9 @@ impl Default for Board {
         let starting_bag = new_bag();
         Board {
             grid: [[Cell::Empty; BOARD_SIZE.0]; BOARD_SIZE.1],
-            current_tetromino: starting_bag[0].into(),
             bag: starting_bag,
             bag_index: 0,
+            current_tetromino: starting_bag[0].into(),
         }
     }
 }

@@ -24,6 +24,12 @@ pub fn key_event_update(app: &mut App, key_event: KeyEvent) {
         KeyCode::Left | KeyCode::Char('a') | KeyCode::Char('h') => {
             app.board.move_current_piece(Direction::Left);
         }
+        KeyCode::Up | KeyCode::Char('w') | KeyCode::Char('k') => {
+            app.board.rotate_current_piece(true);
+        }
+        KeyCode::Char('z') => {
+            app.board.rotate_current_piece(false);
+        }
         _ => {}
     };
 }
