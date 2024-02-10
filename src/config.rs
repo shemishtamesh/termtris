@@ -3,13 +3,13 @@ use ratatui::style::Color;
 
 pub const fn tetromino_color(tetromino: &TetrominoShape) -> Color {
     match tetromino {
-        TetrominoShape::I => Color::Cyan,
-        TetrominoShape::L => Color::Blue,
-        TetrominoShape::J => Color::LightRed,
-        TetrominoShape::O => Color::Yellow,
-        TetrominoShape::S => Color::Green,
-        TetrominoShape::T => Color::Magenta,
-        TetrominoShape::Z => Color::Red,
+        TetrominoShape::I => Color::Rgb(0, 255, 255),
+        TetrominoShape::L => Color::Rgb(0, 0, 255),
+        TetrominoShape::J => Color::Rgb(255, 127, 0),
+        TetrominoShape::O => Color::Rgb(255, 255, 0),
+        TetrominoShape::S => Color::Rgb(0, 255, 0),
+        TetrominoShape::T => Color::Rgb(128, 0, 128),
+        TetrominoShape::Z => Color::Rgb(255, 0, 0),
     }
 }
 
