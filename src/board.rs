@@ -1,7 +1,19 @@
 use crate::config::{tetromino_color, BOARD_SIZE};
-use crate::tetromino::{Direction, Tetromino, TetrominoPositionError, TetrominoShape};
+use crate::tetromino::{Direction, Tetromino, TetrominoShape};
 use rand::{seq::SliceRandom, thread_rng};
 use ratatui::widgets::canvas::{Painter, Shape};
+use std::num::TryFromIntError;
+
+#[derive(Debug)]
+pub enum TetrominoPositionError {
+    NegativePosition,
+    Collision,
+}
+impl From<TryFromIntError> for TetrominoPositionError {
+    fn from(_: TryFromIntError) -> Self {
+        TetrominoPositionError::NegativePosition
+    }
+}
 
 #[derive(Debug, Clone, Copy)]
 pub enum Cell {
@@ -40,7 +52,10 @@ impl Board {
     fn clear_lines(&mut self) {
         // clear the lines
         for y in 0..BOARD_SIZE.1 {
-            if self.grid[y].iter().all(|cell| matches!(cell, Cell::Occupied(_))) {
+            if self.grid[y]
+                .iter()
+                .all(|cell| matches!(cell, Cell::Occupied(_)))
+            {
                 self.grid[y] = [Cell::Empty; BOARD_SIZE.0];
                 for y_to_move in (1..y + 1).rev() {
                     self.grid[y_to_move] = self.grid[y_to_move - 1];
@@ -102,6 +117,9 @@ impl Board {
             self.bag_index = 0;
         }
         self.current_tetromino = Tetromino::new(self.bag[self.bag_index]);
+        if self.check_collision(self.current_tetromino.get_full_position()?) {
+            return Err(TetrominoPositionError::Collision);
+        }
         Ok(())
     }
 

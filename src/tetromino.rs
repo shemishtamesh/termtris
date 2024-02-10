@@ -1,5 +1,5 @@
-use std::num::TryFromIntError;
 use std::ops::{Add, AddAssign};
+use crate::board::TetrominoPositionError;
 
 use crate::config::BOARD_SIZE;
 
@@ -184,14 +184,21 @@ impl Tetromino {
         let original_orientation = self.orientation;
         let original_rotation_index = self.rotation_index;
 
-        self.rotate(clockwise, offset_index)?;
-        let new_full_position = self.get_full_position()?;
+        let return_value;
+        match self.rotate(clockwise, offset_index) {
+            Ok(_) => {
+                return_value = self.get_full_position();
+            }
+            Err(_) => {
+                return_value = Err(TetrominoPositionError::NegativePosition)?;
+            }
+        }
 
         self.pos = original_pos;
         self.orientation = original_orientation;
         self.rotation_index = original_rotation_index;
 
-        return Ok(new_full_position);
+        return return_value;
     }
 
     pub fn rotate(
@@ -219,8 +226,6 @@ impl Tetromino {
         self.pos.x = usize::try_from(self.pos.x as isize + first_offset.0 - second_offset.0)?;
         self.pos.y = usize::try_from(self.pos.y as isize + first_offset.1 - second_offset.1)?;
 
-        // println!("{:?}", (first_offset.0 - second_offset.0, first_offset.1 - second_offset.1));
-
         Ok(())
     }
 
@@ -233,12 +238,3 @@ impl Tetromino {
     }
 }
 
-#[derive(Debug)]
-pub enum TetrominoPositionError {
-    NegativePosition,
-}
-impl From<TryFromIntError> for TetrominoPositionError {
-    fn from(_: TryFromIntError) -> Self {
-        TetrominoPositionError::NegativePosition
-    }
-}
