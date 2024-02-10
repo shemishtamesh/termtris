@@ -22,7 +22,7 @@ impl Board {
     }
 
     pub fn update(&mut self) -> Result<(), TetrominoPositionError> {
-        match self.current_tetromino.calc_full_pos((0, 1)) {
+        match self.current_tetromino.calc_horizontal_move((0, 1)) {
             Ok(full_position) => {
                 if self.check_collision(full_position) {
                     self.next_piece()?;
@@ -37,7 +37,10 @@ impl Board {
     }
 
     pub fn move_current_piece(&mut self, direction: Direction) {
-        match self.current_tetromino.calc_full_pos((direction.into(), 0)) {
+        match self
+            .current_tetromino
+            .calc_horizontal_move((direction.into(), 0))
+        {
             Ok(full_position) => {
                 if !self.check_collision(full_position) {
                     self.current_tetromino.horizontal_move(direction);
@@ -56,7 +59,18 @@ impl Board {
     }
 
     pub fn rotate_current_piece(&mut self, clockwise: bool) {
-        self.current_tetromino.rotate(clockwise, 0);
+        for offset_index in 0..5 {
+            let full_position_rotated = self.current_tetromino.calc_rotate(clockwise, offset_index);
+            match full_position_rotated {
+                Ok(full_position) => {
+                    if !self.check_collision(full_position) {
+                        let _ = self.current_tetromino.rotate(clockwise, offset_index);
+                        return;
+                    }
+                }
+                Err(_) => {}
+            }
+        }
     }
 
     fn next_piece(&mut self) -> Result<(), TetrominoPositionError> {

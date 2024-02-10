@@ -4,22 +4,23 @@ use std::ops::{Add, AddAssign};
 use crate::config::BOARD_SIZE;
 
 const O_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
+    // values in columns other than the first don't matter
     [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
-    [(0, -1), (0, 0), (0, 0), (0, 0), (0, 0)],
-    [(-1, -1), (0, 0), (0, 0), (0, 0), (0, 0)],
+    [(0, 1), (0, 0), (0, 0), (0, 0), (0, 0)],
+    [(-1, 1), (0, 0), (0, 0), (0, 0), (0, 0)],
     [(-1, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
 ];
 const I_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
     [(0, 0), (-1, 0), (2, 0), (-1, 0), (2, 0)],
-    [(-1, 0), (0, 0), (0, 0), (0, 1), (0, -2)],
-    [(-1, 1), (1, 1), (-2, 1), (1, 0), (-2, 0)],
-    [(0, 1), (0, 1), (0, 1), (0, -1), (0, 2)],
+    [(-1, 0), (0, 0), (0, 0), (0, -1), (0, 2)],
+    [(-1, -1), (1, -1), (-2, -1), (1, 0), (-2, 0)],
+    [(0, -1), (0, -1), (0, -1), (0, 1), (0, -2)],
 ];
 const JLSTZ_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
     [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
-    [(0, 0), (1, 0), (1, -1), (0, 2), (1, 2)],
+    [(0, 0), (1, 0), (1, 1), (0, -2), (1, -2)],
     [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
-    [(0, 0), (-1, 0), (-1, -1), (0, 2), (-1, 2)],
+    [(0, 0), (-1, 0), (-1, 1), (0, -2), (-1, -2)],
 ];
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
@@ -113,7 +114,8 @@ impl Tetromino {
             },
             TetrominoShape::O => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 2, 2),
+                // pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
+                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 4),
                 orientation: [(0, -1), (0, 0), (1, -1), (1, 0)],
                 rotation_index: 0,
             },
@@ -140,7 +142,7 @@ impl Tetromino {
         self.pos
     }
 
-    pub fn calc_full_pos(
+    pub fn calc_horizontal_move(
         &self,
         diff: (isize, isize),
     ) -> Result<[(usize, usize); 4], TetrominoPositionError> {
@@ -173,24 +175,52 @@ impl Tetromino {
         self.pos += direction
     }
 
+    pub fn calc_rotate(
+        &mut self,
+        clockwise: bool,
+        offset_index: usize,
+    ) -> Result<[(usize, usize); 4], TetrominoPositionError> {
+        let original_pos = self.pos;
+        let original_orientation = self.orientation;
+        let original_rotation_index = self.rotation_index;
+
+        self.rotate(clockwise, offset_index)?;
+        let new_full_position = self.get_full_position()?;
+
+        self.pos = original_pos;
+        self.orientation = original_orientation;
+        self.rotation_index = original_rotation_index;
+
+        return Ok(new_full_position);
+    }
+
     pub fn rotate(
         &mut self,
         clockwise: bool,
         offset_index: usize,
     ) -> Result<(), TetrominoPositionError> {
+        // rotate
         self.orientation = self.orientation.map(|(x, y)| {
             (
-                y * -(!clockwise as isize) + y * (clockwise as isize),
-                x * -(clockwise as isize) + x * (!clockwise as isize),
+                y * -(clockwise as isize) + y * (!clockwise as isize),
+                x * -(!clockwise as isize) + x * (clockwise as isize),
             )
         });
 
-        let offset = self.get_rotation_offsets()[self.rotation_index][offset_index];
-        usize::try_from(self.pos.x as isize + offset.0)?;
-        usize::try_from(self.pos.y as isize + offset.1)?;
+        // update rotation_index
+        let prev_rotation_index = self.rotation_index;
+        // the +4 is there to avoid casting into isize and back
+        self.rotation_index =
+            (4 + self.rotation_index + (clockwise as usize) - (!clockwise as usize)) % 4;
 
-        self.rotation_index += clockwise as usize;
-        self.rotation_index %= 4;
+        // apply offset
+        let first_offset = self.get_rotation_offsets()[prev_rotation_index][offset_index];
+        let second_offset = self.get_rotation_offsets()[self.rotation_index][offset_index];
+        self.pos.x = usize::try_from(self.pos.x as isize + first_offset.0 - second_offset.0)?;
+        self.pos.y = usize::try_from(self.pos.y as isize + first_offset.1 - second_offset.1)?;
+
+        // println!("{:?}", (first_offset.0 - second_offset.0, first_offset.1 - second_offset.1));
+
         Ok(())
     }
 
