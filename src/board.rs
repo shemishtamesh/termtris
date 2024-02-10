@@ -33,7 +33,20 @@ impl Board {
             }
         }
         self.current_tetromino.update();
+        self.clear_lines();
         Ok(())
+    }
+
+    fn clear_lines(&mut self) {
+        // clear the lines
+        for y in 0..BOARD_SIZE.1 {
+            if self.grid[y].iter().all(|cell| matches!(cell, Cell::Occupied(_))) {
+                self.grid[y] = [Cell::Empty; BOARD_SIZE.0];
+                for y_to_move in (1..y + 1).rev() {
+                    self.grid[y_to_move] = self.grid[y_to_move - 1];
+                }
+            }
+        }
     }
 
     pub fn move_current_piece(&mut self, direction: Direction) {
