@@ -3,6 +3,7 @@ use crate::board::TetrominoPositionError;
 
 use crate::config::BOARD_SIZE;
 
+// y component is inverted because (0, 0) is in the top left
 const O_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
     // values in columns other than the first don't matter
     [(0, 0), (0, 0), (0, 0), (0, 0), (0, 0)],
@@ -189,7 +190,7 @@ impl Tetromino {
                 return_value = self.get_full_position();
             }
             Err(_) => {
-                return_value = Err(TetrominoPositionError::NegativePosition)?;
+                return_value = Err(TetrominoPositionError::NegativePosition);
             }
         }
 
