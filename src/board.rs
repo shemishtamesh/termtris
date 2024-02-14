@@ -38,6 +38,7 @@ impl Board {
             Ok(full_position) => {
                 if self.check_collision(full_position) {
                     self.next_piece()?;
+                    return Ok(());
                 }
             }
             Err(_) => {
@@ -102,6 +103,10 @@ impl Board {
     }
 
     fn next_piece(&mut self) -> Result<(), TetrominoPositionError> {
+        if !self.current_tetromino.update_lock_delay() {
+            return Ok(());
+        }
+
         // fix current piece on the board
         self.current_tetromino
             .get_full_position()?

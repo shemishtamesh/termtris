@@ -1,7 +1,7 @@
 use std::ops::{Add, AddAssign};
 use crate::board::TetrominoPositionError;
 
-use crate::config::BOARD_SIZE;
+use crate::config::{BOARD_SIZE, LOCK_DELAY};
 
 // y component is inverted because (0, 0) is in the top left
 const O_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
@@ -85,6 +85,7 @@ pub struct Tetromino {
     pos: Position,
     orientation: [(isize, isize); 4],
     rotation_index: usize,
+    lock_delay: u8,
 }
 impl Tetromino {
     pub fn new(shape: TetrominoShape) -> Tetromino {
@@ -94,42 +95,49 @@ impl Tetromino {
                 pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
                 orientation: [(-1, -1), (-1, 0), (0, 0), (1, 0)],
                 rotation_index: 0,
+                lock_delay: LOCK_DELAY,
             },
             TetrominoShape::L => Tetromino {
                 shape,
                 pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (1, 0), (1, -1)],
                 rotation_index: 0,
+                lock_delay: LOCK_DELAY,
             },
             TetrominoShape::S => Tetromino {
                 shape,
                 pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (0, -1), (1, -1)],
                 rotation_index: 0,
+                lock_delay: LOCK_DELAY,
             },
             TetrominoShape::Z => Tetromino {
                 shape,
                 pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
                 orientation: [(-1, -1), (0, -1), (0, 0), (1, 0)],
                 rotation_index: 0,
+                lock_delay: LOCK_DELAY,
             },
             TetrominoShape::O => Tetromino {
                 shape,
                 pos: Position::new(BOARD_SIZE.0 / 2 - 1, 4),
                 orientation: [(0, -1), (0, 0), (1, -1), (1, 0)],
                 rotation_index: 0,
+                lock_delay: LOCK_DELAY,
             },
             TetrominoShape::T => Tetromino {
                 shape,
                 pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (0, -1), (1, 0)],
                 rotation_index: 0,
+                lock_delay: LOCK_DELAY,
             },
             TetrominoShape::I => Tetromino {
                 shape,
                 pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (1, 0), (2, 0)],
                 rotation_index: 0,
+                lock_delay: LOCK_DELAY,
             },
         }
     }
@@ -169,6 +177,11 @@ impl Tetromino {
 
     pub fn update(&mut self) {
         self.pos.y += 1;
+    }
+
+    pub fn update_lock_delay(&mut self) -> bool {
+        self.lock_delay -= 1;
+        self.lock_delay == 0
     }
 
     pub fn horizontal_move(&mut self, direction: Direction) {
