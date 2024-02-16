@@ -5,19 +5,14 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::config::{BLOCK_SIZE, BOARD_SIZE};
+use crate::config::BOARD_SIZE;
 
 pub fn render(app: &mut App, f: &mut Frame) {
     f.render_widget(
         canvas::Canvas::default()
-            .block(
-                Block::default()
-                    .borders(Borders::ALL) // TODO: remove this when borders are drawn by the
-                    // board itself
-                    .border_type(BorderType::QuadrantInside),
-            )
-            .x_bounds([0.0, (BLOCK_SIZE * 10) as f64])
-            .y_bounds([0.0, (BLOCK_SIZE * 20) as f64])
+            .block(Block::default())
+            .x_bounds([0.0, (BOARD_SIZE.0) as f64])
+            .y_bounds([0.0, (BOARD_SIZE.1) as f64])
             .marker(Marker::HalfBlock)
             .paint(|ctx| ctx.draw(&app.board)),
         ratatui::prelude::Rect::new(

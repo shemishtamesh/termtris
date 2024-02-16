@@ -147,21 +147,45 @@ impl Default for Board {
 }
 impl Shape for Board {
     fn draw(&self, painter: &mut Painter) {
-        // TODO: draw the border here, it should be only bottom and sides, and the sides should
-        // be lower than the new tetromino
+        // get current tetromino positions
         let tetromino_positions = self
             .current_tetromino
             .get_full_position()
             .expect("negative tetromino position while drawing");
+
+        // draw borders
+        let start_continuous = 5;
+        for y in 0..start_continuous {
+            if y % 2 != 0 {
+                painter.paint(0, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
+                painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
+            }
+        }
+        for y in start_continuous..BOARD_SIZE.1 {
+            painter.paint(0, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
+            painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
+        }
+        for x in 0..BOARD_SIZE.0 + 2 {
+            painter.paint(x, BOARD_SIZE.1 + 1, tetromino_color(&self.current_tetromino.get_shape()));
+        }
+
+        // draw the board
         for (y, row) in self.grid.iter().enumerate() {
             for (x, cell) in row.iter().enumerate() {
+                // draw the current tetromino
                 if tetromino_positions.contains(&(x, y)) {
-                    painter.paint(x, y, tetromino_color(&self.current_tetromino.get_shape()));
+                    painter.paint(
+                        x + 1,
+                        y + 1,
+                        tetromino_color(&self.current_tetromino.get_shape()),
+                    );
                     continue;
                 }
+
+                // draw the existing board
                 match cell {
                     Cell::Empty => {}
-                    Cell::Occupied(shape) => painter.paint(x, y, tetromino_color(shape)),
+                    Cell::Occupied(shape) => painter.paint(x + 1, y + 1, tetromino_color(shape)),
                 }
             }
         }
