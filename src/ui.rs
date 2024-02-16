@@ -1,7 +1,7 @@
 use ratatui::{
     prelude::Frame,
     symbols::Marker,
-    widgets::{block::BorderType, canvas, Block, Borders},
+    widgets::{canvas, Block},
 };
 
 use crate::app::App;

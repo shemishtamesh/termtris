@@ -26,6 +26,7 @@ pub struct Board {
     grid: [[Cell; BOARD_SIZE.0]; BOARD_SIZE.1],
     bag: [TetrominoShape; 7],
     bag_index: usize,
+    next_bag: [TetrominoShape; 7],
     pub current_tetromino: Tetromino,
 }
 impl Board {
@@ -37,12 +38,12 @@ impl Board {
         match self.current_tetromino.calc_horizontal_move((0, 1)) {
             Ok(full_position) => {
                 if self.check_collision(full_position) {
-                    self.next_piece()?;
+                    self.spawn_next_piece()?;
                     return Ok(());
                 }
             }
             Err(_) => {
-                self.next_piece()?;
+                self.spawn_next_piece()?;
             }
         }
         self.current_tetromino.update();
@@ -100,12 +101,13 @@ impl Board {
         }
     }
 
-    fn next_piece(&mut self) -> Result<(), TetrominoPositionError> {
+    fn spawn_next_piece(&mut self) -> Result<(), TetrominoPositionError> {
+        // do not yet spawn next piece if current piece should not be locked yet
         if !self.current_tetromino.update_lock_delay() {
             return Ok(());
         }
 
-        // fix current piece on the board
+        // lock current piece on the board
         self.current_tetromino
             .get_full_position()?
             .iter()
@@ -130,9 +132,19 @@ impl Board {
         Ok(())
     }
 
-    fn fill_bag(&mut self) {
-        self.bag = new_bag();
+    fn calc_next_piece(&self) -> TetrominoShape {
+        if self.bag_index + 1 >= self.bag.len() {
+            self.next_bag[self.bag_index + 1 - self.bag.len()]
+        } else {
+            self.bag[self.bag_index + 1]
+        }
     }
+
+    fn fill_bag(&mut self) {
+        self.bag = self.next_bag;
+        self.next_bag = new_bag();
+    }
+
 }
 impl Default for Board {
     fn default() -> Self {
@@ -141,6 +153,7 @@ impl Default for Board {
             grid: [[Cell::Empty; BOARD_SIZE.0]; BOARD_SIZE.1],
             bag: starting_bag,
             bag_index: 0,
+            next_bag: new_bag(),
             current_tetromino: starting_bag[0].into(),
         }
     }
@@ -154,19 +167,20 @@ impl Shape for Board {
             .expect("negative tetromino position while drawing");
 
         // draw borders
+        let preview_piece = self.calc_next_piece();
         let start_continuous = 5;
         for y in 0..start_continuous {
             if y % 2 != 0 {
-                painter.paint(0, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
-                painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
+                painter.paint(0, y + 1, tetromino_color(&preview_piece));
+                painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&preview_piece));
             }
         }
         for y in start_continuous..BOARD_SIZE.1 {
-            painter.paint(0, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
-            painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&self.current_tetromino.get_shape()));
+            painter.paint(0, y + 1, tetromino_color(&preview_piece));
+            painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&preview_piece));
         }
         for x in 0..BOARD_SIZE.0 + 2 {
-            painter.paint(x, BOARD_SIZE.1 + 1, tetromino_color(&self.current_tetromino.get_shape()));
+            painter.paint(x, BOARD_SIZE.1 + 1, tetromino_color(&preview_piece));
         }
 
         // draw the board
