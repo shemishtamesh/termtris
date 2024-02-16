@@ -46,12 +46,10 @@ impl Board {
             }
         }
         self.current_tetromino.update();
-        self.clear_lines();
         Ok(())
     }
 
     fn clear_lines(&mut self) {
-        // clear the lines
         for y in 0..BOARD_SIZE.1 {
             if self.grid[y]
                 .iter()
@@ -125,6 +123,10 @@ impl Board {
         if self.check_collision(self.current_tetromino.get_full_position()?) {
             return Err(TetrominoPositionError::Collision);
         }
+
+        // clear lines
+        self.clear_lines();
+
         Ok(())
     }
 
