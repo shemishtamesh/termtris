@@ -20,6 +20,9 @@ pub fn key_event_update(app: &mut App, key_event: KeyEvent) {
             }
         }
 
+        // restart
+        KeyCode::Char('r') => app.reset(),
+
         // move to sides
         KeyCode::Right | KeyCode::Char('d') | KeyCode::Char('l') => {
             app.board.move_current_piece(Direction::Right);

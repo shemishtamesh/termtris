@@ -15,6 +15,11 @@ impl App {
         Self::default()
     }
 
+    /// Create a new instance of [`Board`].
+    pub fn reset(&mut self) {
+        self.board = Board::new();
+    }
+
     /// Set should_quit to true to quit the application.
     pub fn quit(&mut self) {
         self.should_quit = true;
