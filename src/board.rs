@@ -101,6 +101,14 @@ impl Board {
         }
     }
 
+    pub fn hard_drop(&mut self) -> Result<(), TetrominoPositionError> {
+        let current_shape = self.current_tetromino.get_shape().clone();
+        while self.current_tetromino.get_shape() == current_shape {
+            self.update()?;
+        }
+        Ok(())
+    }
+
     fn spawn_next_piece(&mut self) -> Result<(), TetrominoPositionError> {
         // do not yet spawn next piece if current piece should not be locked yet
         if !self.current_tetromino.update_lock_delay() {
