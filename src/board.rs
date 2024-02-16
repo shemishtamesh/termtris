@@ -1,4 +1,6 @@
-use crate::config::{tetromino_color, BOARD_SIZE};
+use crate::config::{
+    tetromino_color, tetromino_color_border, tetromino_color_ghost, BOARD_SIZE, LOCK_DELAY,
+};
 use crate::tetromino::{Direction, Tetromino, TetrominoShape};
 use rand::{seq::SliceRandom, thread_rng};
 use ratatui::widgets::canvas::{Painter, Shape};
@@ -102,11 +104,28 @@ impl Board {
     }
 
     pub fn hard_drop(&mut self) -> Result<(), TetrominoPositionError> {
-        let current_shape = self.current_tetromino.get_shape().clone();
-        while self.current_tetromino.get_shape() == current_shape {
-            self.update()?;
+        for _ in 0..(self.calc_relative_height()? + LOCK_DELAY as usize) {
+            let _ = self.update();
         }
         Ok(())
+    }
+
+    pub fn calc_relative_height(&self) -> Result<usize, TetrominoPositionError> {
+        let height = self
+            .current_tetromino
+            .get_full_position()?
+            .iter()
+            .map(|(x_pos, y_pos)| {
+                for y in (y_pos + 1)..BOARD_SIZE.1 {
+                    if matches!(self.grid[y][*x_pos], Cell::Occupied(_)) {
+                        return y - y_pos - 1;
+                    }
+                }
+                BOARD_SIZE.1 - y_pos - 1
+            })
+            .min()
+            .expect("current tetromino doesn't have a position");
+        Ok(height)
     }
 
     fn spawn_next_piece(&mut self) -> Result<(), TetrominoPositionError> {
@@ -152,7 +171,6 @@ impl Board {
         self.bag = self.next_bag;
         self.next_bag = new_bag();
     }
-
 }
 impl Default for Board {
     fn default() -> Self {
@@ -173,22 +191,33 @@ impl Shape for Board {
             .current_tetromino
             .get_full_position()
             .expect("negative tetromino position while drawing");
+        let tetromino_height = self
+            .calc_relative_height()
+            .expect("could not calculate tetromino height");
 
         // draw borders
         let preview_piece = self.calc_next_piece();
         let start_continuous = 5;
         for y in 0..start_continuous {
             if y % 2 != 0 {
-                painter.paint(0, y + 1, tetromino_color(&preview_piece));
-                painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&preview_piece));
+                painter.paint(0, y + 1, tetromino_color_border(&preview_piece));
+                painter.paint(
+                    BOARD_SIZE.0 + 1,
+                    y + 1,
+                    tetromino_color_border(&preview_piece),
+                );
             }
         }
         for y in start_continuous..BOARD_SIZE.1 {
-            painter.paint(0, y + 1, tetromino_color(&preview_piece));
-            painter.paint(BOARD_SIZE.0 + 1, y + 1, tetromino_color(&preview_piece));
+            painter.paint(0, y + 1, tetromino_color_border(&preview_piece));
+            painter.paint(
+                BOARD_SIZE.0 + 1,
+                y + 1,
+                tetromino_color_border(&preview_piece),
+            );
         }
         for x in 0..BOARD_SIZE.0 + 2 {
-            painter.paint(x, BOARD_SIZE.1 + 1, tetromino_color(&preview_piece));
+            painter.paint(x, BOARD_SIZE.1 + 1, tetromino_color_border(&preview_piece));
         }
 
         // draw the board
@@ -200,6 +229,19 @@ impl Shape for Board {
                         x + 1,
                         y + 1,
                         tetromino_color(&self.current_tetromino.get_shape()),
+                    );
+                    continue;
+                }
+
+                // draw ghost
+                if tetromino_positions
+                    .iter()
+                    .any(|(x_pos, y_pos)| *x_pos == x && *y_pos + tetromino_height == y)
+                {
+                    painter.paint(
+                        x + 1,
+                        y + 1,
+                        tetromino_color_ghost(&self.current_tetromino.get_shape()),
                     );
                     continue;
                 }

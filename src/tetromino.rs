@@ -1,5 +1,5 @@
-use std::ops::{Add, AddAssign};
 use crate::board::TetrominoPositionError;
+use std::ops::{Add, AddAssign};
 
 use crate::config::{BOARD_SIZE, LOCK_DELAY};
 
@@ -79,7 +79,7 @@ impl AddAssign<Direction> for Position {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Tetromino {
     shape: TetrominoShape,
     pos: Position,
@@ -250,4 +250,3 @@ impl Tetromino {
         }
     }
 }
-

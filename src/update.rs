@@ -5,7 +5,7 @@ use crate::tetromino::Direction;
 
 pub fn update(app: &mut App) {
     match app.board.update() {
-        Ok(_) => {},
+        Ok(_) => {}
         Err(_) => app.quit(),
     };
 }
@@ -40,12 +40,10 @@ pub fn key_event_update(app: &mut App, key_event: KeyEvent) {
         }
 
         // drop
-        KeyCode::Char(' ') => {
-            match app.board.hard_drop() {
-                Ok(_) => {},
-                Err(_) => app.quit(),
-            }
-        }
+        KeyCode::Char(' ') => match app.board.hard_drop() {
+            Ok(_) => {}
+            Err(_) => app.quit(),
+        },
 
         _ => {}
     };
