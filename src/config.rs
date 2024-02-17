@@ -40,6 +40,7 @@ pub const fn tetromino_color_border(tetromino: &TetrominoShape) -> Color {
 pub const BLOCK_SIZE: u16 = 2;
 pub const BOARD_SIZE: (usize, usize) = (10, 24);
 
-pub const BASE_TICK_RATE: u64 = 250;
+pub const TICK_DELAY: u64 = 250;
+pub const SOFT_DROP_TICK_DELAY: u64 = TICK_DELAY / 4;
 
 pub const LOCK_DELAY: u8 = 3;

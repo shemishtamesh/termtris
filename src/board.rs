@@ -1,5 +1,6 @@
 use crate::config::{
     tetromino_color, tetromino_color_border, tetromino_color_ghost, BOARD_SIZE, LOCK_DELAY,
+    TICK_DELAY, SOFT_DROP_TICK_DELAY,
 };
 use crate::tetromino::{Direction, Tetromino, TetrominoShape};
 use rand::{seq::SliceRandom, thread_rng};
@@ -29,7 +30,8 @@ pub struct Board {
     bag: [TetrominoShape; 7],
     bag_index: usize,
     next_bag: [TetrominoShape; 7],
-    pub current_tetromino: Tetromino,
+    current_tetromino: Tetromino,
+    pub tick_delay: u64,
 }
 impl Board {
     pub fn new() -> Board {
@@ -101,6 +103,14 @@ impl Board {
                 Err(_) => {}
             }
         }
+    }
+
+    pub fn soft_drop(&mut self, activate: bool) {
+        if activate {
+            self.tick_delay = SOFT_DROP_TICK_DELAY;
+            return;
+        }
+        self.tick_delay = TICK_DELAY;
     }
 
     pub fn hard_drop(&mut self) -> Result<(), TetrominoPositionError> {
@@ -181,6 +191,7 @@ impl Default for Board {
             bag_index: 0,
             next_bag: new_bag(),
             current_tetromino: starting_bag[0].into(),
+            tick_delay: TICK_DELAY,
         }
     }
 }

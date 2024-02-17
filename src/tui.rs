@@ -2,13 +2,17 @@ use std::{io, panic};
 
 use anyhow::Result;
 use crossterm::{
-    event::{DisableMouseCapture, EnableMouseCapture},
+    event::{
+        DisableMouseCapture, EnableMouseCapture, KeyboardEnhancementFlags,
+        PopKeyboardEnhancementFlags, PushKeyboardEnhancementFlags,
+    },
+    execute,
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
 };
 
 pub type CrosstermTerminal = ratatui::Terminal<ratatui::backend::CrosstermBackend<std::io::Stderr>>;
 
-use crate::{app::App, event::EventHandler, ui};
+use crate::{app::App, ui};
 
 /// Representation of a terminal user interface.
 ///
@@ -17,14 +21,12 @@ use crate::{app::App, event::EventHandler, ui};
 pub struct Tui {
     /// Interface to the Terminal.
     terminal: CrosstermTerminal,
-    /// Terminal event handler.
-    pub events: EventHandler,
 }
 
 impl Tui {
     /// Constructs a new instance of [`Tui`].
-    pub fn new(terminal: CrosstermTerminal, events: EventHandler) -> Self {
-        Self { terminal, events }
+    pub fn new(terminal: CrosstermTerminal) -> Self {
+        Self { terminal }
     }
 
     /// Initializes the terminal interface.
@@ -44,6 +46,13 @@ impl Tui {
 
         self.terminal.hide_cursor()?;
         self.terminal.clear()?;
+
+        // Enables more event kinds on linux
+        let _ = execute!(
+            io::stdout(),
+            PushKeyboardEnhancementFlags(KeyboardEnhancementFlags::REPORT_EVENT_TYPES)
+        );
+
         Ok(())
     }
 
@@ -61,6 +70,7 @@ impl Tui {
     /// This function is also used for the panic hook to revert
     /// the terminal properties if unexpected errors occur.
     fn reset() -> Result<()> {
+        let _ = execute!(io::stdout(), PopKeyboardEnhancementFlags);
         terminal::disable_raw_mode()?;
         crossterm::execute!(io::stderr(), LeaveAlternateScreen, DisableMouseCapture)?;
         Ok(())

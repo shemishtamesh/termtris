@@ -1,7 +1,6 @@
 pub mod app;
 pub mod board;
 pub mod config;
-pub mod event;
 pub mod tetromino;
 pub mod tui;
 pub mod ui;
@@ -9,9 +8,8 @@ pub mod update;
 
 use anyhow::Result;
 use app::App;
-use config::BASE_TICK_RATE;
-use event::{Event, EventHandler};
 use ratatui::{backend::CrosstermBackend, Terminal};
+use std::time::{Duration, Instant};
 use tui::Tui;
 use update::{key_event_update, update};
 
@@ -22,21 +20,39 @@ fn main() -> Result<()> {
     // Initialize the terminal user interface.
     let backend = CrosstermBackend::new(std::io::stderr());
     let terminal = Terminal::new(backend)?;
-    let events = EventHandler::new(BASE_TICK_RATE);
-    let mut tui = Tui::new(terminal, events);
+    let mut tui = Tui::new(terminal);
     tui.enter()?;
 
     // Start the main loop.
+    let mut poll_time = Instant::now();  // initialize for tick delay
     while !app.should_quit {
         // Render the user interface.
         tui.draw(&mut app)?;
         // Handle events.
-        match tui.events.next()? {
-            Event::Tick => update(&mut app),
-            Event::Key(key_event) => key_event_update(&mut app, key_event),
-            Event::Mouse(_) => {}
-            Event::Resize(_, _) => {}
-        };
+        let delay_duration = Duration::from_millis(app.board.tick_delay);
+        if crossterm::event::poll(delay_duration)
+            .expect("failed to poll event")
+        {
+            match crossterm::event::read().expect("failed to read event") {
+                crossterm::event::Event::FocusGained => {
+                    // TODO: unpause
+                }
+                crossterm::event::Event::FocusLost => {
+                    // TODO: pause
+                }
+                crossterm::event::Event::Resize(_width, _height) => {
+                    // TODO: change board size
+                }
+                crossterm::event::Event::Key(key_event) => key_event_update(&mut app, key_event),
+                _ => {}
+            };
+        }
+
+        // make sure enough time has passed for update
+        if poll_time.elapsed() >= delay_duration {
+            update(&mut app);
+            poll_time = Instant::now();
+        }
     }
 
     // Exit the user interface.
