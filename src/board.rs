@@ -1,6 +1,6 @@
 use crate::config::{
     tetromino_color, tetromino_color_border, tetromino_color_ghost, BOARD_SIZE, LOCK_DELAY,
-    TICK_DELAY, SOFT_DROP_TICK_DELAY,
+    SOFT_DROP_TICK_DELAY, TICK_DELAY,
 };
 use crate::tetromino::{Direction, Tetromino, TetrominoShape};
 use rand::{seq::SliceRandom, thread_rng};
@@ -31,6 +31,8 @@ pub struct Board {
     bag_index: usize,
     next_bag: [TetrominoShape; 7],
     current_tetromino: Tetromino,
+    held_tetromino: Option<TetrominoShape>,
+    already_held: bool,
     pub tick_delay: u64,
 }
 impl Board {
@@ -42,12 +44,12 @@ impl Board {
         match self.current_tetromino.calc_horizontal_move((0, 1)) {
             Ok(full_position) => {
                 if self.check_collision(full_position) {
-                    self.spawn_next_piece()?;
+                    self.piece_on_ground()?;
                     return Ok(());
                 }
             }
             Err(_) => {
-                self.spawn_next_piece()?;
+                self.piece_on_ground()?;
             }
         }
         self.current_tetromino.update();
@@ -105,6 +107,26 @@ impl Board {
         }
     }
 
+    pub fn hold(&mut self) -> Result<(), TetrominoPositionError> {
+        if self.already_held {
+            return Ok(());
+        }
+        self.already_held = true;
+
+        match self.held_tetromino.clone() {
+            Some(held_tetromino) => {
+                self.held_tetromino = Some(self.current_tetromino.get_shape());
+                self.spawn_tetromino(held_tetromino)?;
+            }
+            None => {
+                self.held_tetromino = Some(self.current_tetromino.get_shape());
+                self.spawn_next_piece()?;
+            }
+        }
+
+        Ok(())
+    }
+
     pub fn soft_drop(&mut self, activate: bool) {
         if activate {
             self.tick_delay = SOFT_DROP_TICK_DELAY;
@@ -138,7 +160,26 @@ impl Board {
         Ok(height)
     }
 
+    fn spawn_tetromino(&mut self, shape: TetrominoShape) -> Result<(), TetrominoPositionError> {
+        self.current_tetromino = Tetromino::new(shape);
+        if self.check_collision(self.current_tetromino.get_full_position()?) {
+            return Err(TetrominoPositionError::Collision);
+        }
+        Ok(())
+    }
+
     fn spawn_next_piece(&mut self) -> Result<(), TetrominoPositionError> {
+        self.bag_index += 1;
+        if self.bag_index >= self.bag.len() {
+            self.fill_bag();
+            self.bag_index = 0;
+        }
+        self.spawn_tetromino(self.bag[self.bag_index])?;
+
+        Ok(())
+    }
+
+    fn piece_on_ground(&mut self) -> Result<(), TetrominoPositionError> {
         // do not yet spawn next piece if current piece should not be locked yet
         if !self.current_tetromino.update_lock_delay() {
             return Ok(());
@@ -153,18 +194,13 @@ impl Board {
             });
 
         // spawn new piece
-        self.bag_index += 1;
-        if self.bag_index >= self.bag.len() {
-            self.fill_bag();
-            self.bag_index = 0;
-        }
-        self.current_tetromino = Tetromino::new(self.bag[self.bag_index]);
-        if self.check_collision(self.current_tetromino.get_full_position()?) {
-            return Err(TetrominoPositionError::Collision);
-        }
+        self.spawn_next_piece()?;
 
         // clear lines
         self.clear_lines();
+
+        // reenable holding
+        self.already_held = false;
 
         Ok(())
     }
@@ -191,6 +227,8 @@ impl Default for Board {
             bag_index: 0,
             next_bag: new_bag(),
             current_tetromino: starting_bag[0].into(),
+            held_tetromino: None,
+            already_held: false,
             tick_delay: TICK_DELAY,
         }
     }
@@ -210,13 +248,15 @@ impl Shape for Board {
         let preview_piece = self.calc_next_piece();
         let start_continuous = 5;
         for y in 0..start_continuous {
+            let color;
+            if let Some(held) = self.held_tetromino {
+                color = tetromino_color_border(&held);
+            } else {
+                color = tetromino_color_border(&preview_piece);
+            }
             if y % 2 != 0 {
-                painter.paint(0, y + 1, tetromino_color_border(&preview_piece));
-                painter.paint(
-                    BOARD_SIZE.0 + 1,
-                    y + 1,
-                    tetromino_color_border(&preview_piece),
-                );
+                painter.paint(0, y + 1, color);
+                painter.paint(BOARD_SIZE.0 + 1, y + 1, color);
             }
         }
         for y in start_continuous..BOARD_SIZE.1 {
