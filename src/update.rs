@@ -11,6 +11,10 @@ pub fn update(app: &mut App) {
 }
 
 pub fn key_event_update(app: &mut App, key_event: KeyEvent) {
+    if app.paused {
+        return;
+    }
+
     match key_event {
         // exit
         KeyEvent {

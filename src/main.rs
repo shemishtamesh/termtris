@@ -35,10 +35,10 @@ fn main() -> Result<()> {
         {
             match crossterm::event::read().expect("failed to read event") {
                 crossterm::event::Event::FocusGained => {
-                    // TODO: unpause
+                    app.pause(false);
                 }
                 crossterm::event::Event::FocusLost => {
-                    // TODO: pause
+                    app.pause(true);
                 }
                 crossterm::event::Event::Resize(_width, _height) => {
                     // TODO: change board size
@@ -50,7 +50,9 @@ fn main() -> Result<()> {
 
         // make sure enough time has passed for update
         if poll_time.elapsed() >= delay_duration {
-            update(&mut app);
+            if !app.paused {
+                update(&mut app);
+            }
             poll_time = Instant::now();
         }
     }
