@@ -12,6 +12,7 @@ pub fn update(app: &mut App) {
 
 pub fn key_event_update(app: &mut App, key_event: KeyEvent) {
     if app.paused {
+        paused_key_update(app, key_event);
         return;
     }
 
@@ -88,6 +89,26 @@ pub fn key_event_update(app: &mut App, key_event: KeyEvent) {
             ..
         } => app.board.soft_drop(false),
 
+        // pause
+        KeyEvent {
+            code: KeyCode::Char('p'),
+            kind: KeyEventKind::Press,
+            ..
+        } => app.pause(true),
+
         _ => {}
     };
+
+    fn paused_key_update(app: &mut App, key_event: KeyEvent) {
+        // unpause
+        match key_event {
+            KeyEvent {
+                code: KeyCode::Char('p'),
+                kind: KeyEventKind::Press,
+                ..
+            } => app.pause(false),
+
+            _ => {}
+        }
+    }
 }
