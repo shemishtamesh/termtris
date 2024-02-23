@@ -33,6 +33,9 @@ pub struct Board {
     current_tetromino: Tetromino,
     held_tetromino: Option<TetrominoShape>,
     already_held: bool,
+    score: u128,
+    lines_cleared: u128,
+    level: u8,
     pub tick_delay: u64,
 }
 impl Board {
@@ -57,16 +60,30 @@ impl Board {
     }
 
     fn clear_lines(&mut self) {
+        let mut additional_lines_cleared = 0;
         for y in 0..BOARD_SIZE.1 {
             if self.grid[y]
                 .iter()
                 .all(|cell| matches!(cell, Cell::Occupied(_)))
             {
+                // clear line
                 self.grid[y] = [Cell::Empty; BOARD_SIZE.0];
+
+                // move all lines above down
                 for y_to_move in (1..y + 1).rev() {
                     self.grid[y_to_move] = self.grid[y_to_move - 1];
                 }
+
+                // update lines cleared counter
+                additional_lines_cleared += 1;
             }
+        }
+
+        // update score & level
+        self.lines_cleared += additional_lines_cleared;
+        self.score += additional_lines_cleared * 100 * (self.level + 1) as u128;
+        if self.lines_cleared >= self.level as u128 * 10 + 10 {
+            self.level += 1;
         }
     }
 
@@ -217,6 +234,18 @@ impl Board {
         self.bag = self.next_bag;
         self.next_bag = new_bag();
     }
+
+    pub fn get_score(&self) -> u128 {
+        self.score
+    }
+
+    pub fn get_lines_cleared(&self) -> u128 {
+        self.lines_cleared
+    }
+
+    pub fn get_level(&self) -> u8 {
+        self.level
+    }
 }
 impl Default for Board {
     fn default() -> Self {
@@ -230,6 +259,9 @@ impl Default for Board {
             held_tetromino: None,
             already_held: false,
             tick_delay: TICK_DELAY,
+            score: 0,
+            lines_cleared: 0,
+            level: 1,
         }
     }
 }
