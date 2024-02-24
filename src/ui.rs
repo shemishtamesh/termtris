@@ -8,6 +8,7 @@ use crate::app::App;
 use crate::config::BOARD_SIZE;
 
 pub fn render(app: &mut App, f: &mut Frame) {
+    // board
     f.render_widget(
         canvas::Canvas::default()
             .block(Block::default())

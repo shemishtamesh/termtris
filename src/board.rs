@@ -56,6 +56,12 @@ impl Board {
             }
         }
         self.current_tetromino.update();
+
+        if self.tick_delay != tick_delay(self.level) {
+            // soft dropping
+            self.score += 1;
+        }
+
         Ok(())
     }
 
@@ -147,7 +153,7 @@ impl Board {
 
     pub fn soft_drop(&mut self, activate: bool) {
         if activate {
-            self.tick_delay = tick_delay(self.level) / 2;
+            self.tick_delay = tick_delay(self.level) / 8;
             return;
         }
         self.tick_delay = tick_delay(self.level);
