@@ -161,7 +161,10 @@ impl Board {
 
     pub fn hard_drop(&mut self) -> Result<(), TetrominoPositionError> {
         let height = self.calc_relative_height()?;
-        self.score += height as u128 as u128 * 10;
+
+        // increase score
+        self.score += height as u128 as u128 * 2;
+
         for _ in 0..(self.calc_relative_height()? + LOCK_DELAY as usize) {
             let _ = self.update();
         }
