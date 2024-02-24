@@ -1,8 +1,8 @@
 use crate::tetromino::TetrominoShape;
 use ratatui::style::Color;
 
-pub const fn tetromino_color(tetromino: &TetrominoShape) -> Color {
-    match tetromino {
+pub const fn tetromino_color(tetromino_shape: &TetrominoShape) -> Color {
+    match tetromino_shape {
         TetrominoShape::I => Color::Rgb(0, 255, 255),
         TetrominoShape::L => Color::Rgb(255, 127, 0),
         TetrominoShape::J => Color::Rgb(0, 0, 255),
@@ -13,8 +13,8 @@ pub const fn tetromino_color(tetromino: &TetrominoShape) -> Color {
     }
 }
 
-pub const fn tetromino_color_ghost(tetromino: &TetrominoShape) -> Color {
-    match tetromino {
+pub const fn tetromino_color_ghost(tetromino_shape: &TetrominoShape) -> Color {
+    match tetromino_shape {
         TetrominoShape::I => Color::Rgb(0, 127, 128),
         TetrominoShape::L => Color::Rgb(128, 64, 0),
         TetrominoShape::J => Color::Rgb(0, 0, 128),
@@ -25,8 +25,8 @@ pub const fn tetromino_color_ghost(tetromino: &TetrominoShape) -> Color {
     }
 }
 
-pub const fn tetromino_color_border(tetromino: &TetrominoShape) -> Color {
-    match tetromino {
+pub const fn tetromino_color_border(tetromino_shape: &TetrominoShape) -> Color {
+    match tetromino_shape {
         TetrominoShape::I => Color::Rgb(64, 191, 191),
         TetrominoShape::L => Color::Rgb(191, 127, 64),
         TetrominoShape::J => Color::Rgb(64, 64, 191),

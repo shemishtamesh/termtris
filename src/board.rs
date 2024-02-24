@@ -87,19 +87,20 @@ impl Board {
 
         // update score & level
         // self.score += lines_cleared * 100 * (self.level + 1) as u128;
-        self.score += self.level as u128 * match lines_cleared {
-            0 => 0,
-            1 => 100,
-            2 => 300,
-            3 => 500,
-            4 => 800,
-            _ => {
-                panic!(
+        self.score += self.level as u128
+            * match lines_cleared {
+                0 => 0,
+                1 => 100,
+                2 => 300,
+                3 => 500,
+                4 => 800,
+                _ => {
+                    panic!(
                     "please file an issue at https://github.com/shemishtamesh/termtris/issues/new describing how you've cleared {} lines in one tick",
                     lines_cleared
                 )
-            }
-        };
+                }
+            };
         self.lines_cleared += lines_cleared;
         if self.lines_cleared >= self.level as u128 * 10 + 10 {
             self.level += 1;
@@ -247,11 +248,18 @@ impl Board {
         Ok(())
     }
 
-    fn calc_next_piece(&self) -> TetrominoShape {
-        if self.bag_index + 1 >= self.bag.len() {
-            self.next_bag[self.bag_index + 1 - self.bag.len()]
+    // calculates a future tetromino's shape, can only return up to self.bag.len() pieces ahead
+    pub fn calc_next_piece(&self, n: usize) -> TetrominoShape {
+        assert!(
+            n <= self.bag.len(),
+            "can see only {} pieces ahead",
+            self.bag.len()
+        );
+
+        if self.bag_index + n >= self.bag.len() {
+            self.next_bag[self.bag_index + n - self.bag.len()]
         } else {
-            self.bag[self.bag_index + 1]
+            self.bag[self.bag_index + n]
         }
     }
 
@@ -270,6 +278,10 @@ impl Board {
 
     pub fn get_level(&self) -> u8 {
         self.level
+    }
+
+    pub fn get_held_tetromino(&self) -> Option<TetrominoShape> {
+        self.held_tetromino
     }
 }
 impl Default for Board {
@@ -302,7 +314,7 @@ impl Shape for Board {
             .expect("could not calculate tetromino height");
 
         // draw borders
-        let preview_piece = self.calc_next_piece();
+        let preview_piece = self.calc_next_piece(1);
         let start_continuous = 5;
         for y in 0..start_continuous {
             let color;

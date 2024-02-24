@@ -1,7 +1,18 @@
-use crate::board::TetrominoPositionError;
+use ratatui::{
+    prelude::{Buffer, Rect},
+    symbols::Marker,
+    widgets::{
+        canvas::{Canvas, Painter, Shape},
+        Block, BorderType, Borders, Widget,
+    },
+};
+
 use std::ops::{Add, AddAssign};
 
-use crate::config::{BOARD_SIZE, LOCK_DELAY};
+use crate::{
+    board::TetrominoPositionError,
+    config::{tetromino_color, BOARD_SIZE, LOCK_DELAY},
+};
 
 // y component is inverted because (0, 0) is in the top left
 const O_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
@@ -248,5 +259,45 @@ impl Tetromino {
             TetrominoShape::I => I_ROTATION_OFFSETS,
             _ => JLSTZ_ROTATION_OFFSETS,
         }
+    }
+}
+impl Shape for Tetromino {
+    fn draw(&self, painter: &mut Painter) {
+        for (x, y) in self.orientation {
+            painter.paint(
+                (x + 1) as usize,
+                (y + 1) as usize,
+                tetromino_color(&self.shape),
+            );
+        }
+    }
+}
+impl Widget for Tetromino {
+    fn render(self, area: Rect, buf: &mut Buffer) {
+        // f.render_widget(
+        //     canvas::Canvas::default()
+        //         .block(Block::default())
+        //         .x_bounds([0.0, (BOARD_SIZE.0) as f64])
+        //         .y_bounds([0.0, (BOARD_SIZE.1) as f64])
+        //         .marker(Marker::HalfBlock)
+        //         .paint(|ctx| ctx.draw(&app.board)),
+        //     ratatui::prelude::Rect::new(
+        //         (f.size().width / 2) - (BOARD_SIZE.0 / 2) as u16,
+        //         (f.size().height / 2) - (BOARD_SIZE.1 / 4) as u16,
+        //         (BOARD_SIZE.0 + 2) as u16,
+        //         ((BOARD_SIZE.1 / 2) + 2) as u16,
+        //     ),
+        // );
+        Canvas::default()
+            .block(
+                Block::default()
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded),
+            )
+            .x_bounds([0.0, 4.0])
+            .y_bounds([0.0, 4.0])
+            .marker(Marker::HalfBlock)
+            .paint(|ctx| ctx.draw(&self))
+            .render(area, buf);
     }
 }
