@@ -1,6 +1,6 @@
 use crate::config::{
-    tetromino_color, tetromino_color_border, tetromino_color_ghost, BOARD_SIZE, LOCK_DELAY,
-    SOFT_DROP_TICK_DELAY, TICK_DELAY,
+    tetromino_color, tetromino_color_border, tetromino_color_ghost, tick_delay, BOARD_SIZE,
+    LOCK_DELAY,
 };
 use crate::tetromino::{Direction, Tetromino, TetrominoShape};
 use rand::{seq::SliceRandom, thread_rng};
@@ -84,6 +84,7 @@ impl Board {
         self.score += additional_lines_cleared * 100 * (self.level + 1) as u128;
         if self.lines_cleared >= self.level as u128 * 10 + 10 {
             self.level += 1;
+            self.tick_delay = tick_delay(self.level);
         }
     }
 
@@ -146,15 +147,15 @@ impl Board {
 
     pub fn soft_drop(&mut self, activate: bool) {
         if activate {
-            self.tick_delay = SOFT_DROP_TICK_DELAY;
+            self.tick_delay = tick_delay(self.level) / 2;
             return;
         }
-        self.tick_delay = TICK_DELAY;
+        self.tick_delay = tick_delay(self.level);
     }
 
     pub fn hard_drop(&mut self) -> Result<(), TetrominoPositionError> {
         let height = self.calc_relative_height()?;
-        self.score += height as u128  as u128 * 10;
+        self.score += height as u128 as u128 * 10;
         for _ in 0..(self.calc_relative_height()? + LOCK_DELAY as usize) {
             let _ = self.update();
         }
@@ -260,7 +261,7 @@ impl Default for Board {
             current_tetromino: starting_bag[0].into(),
             held_tetromino: None,
             already_held: false,
-            tick_delay: TICK_DELAY,
+            tick_delay: tick_delay(1),
             score: 0,
             lines_cleared: 0,
             level: 1,

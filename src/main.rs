@@ -24,15 +24,13 @@ fn main() -> Result<()> {
     tui.enter()?;
 
     // Start the main loop.
-    let mut poll_time = Instant::now();  // initialize for tick delay
+    let mut poll_time = Instant::now(); // initialize for tick delay
     while !app.should_quit {
         // Render the user interface.
         tui.draw(&mut app)?;
         // Handle events.
         let delay_duration = Duration::from_millis(app.board.tick_delay);
-        if crossterm::event::poll(delay_duration)
-            .expect("failed to poll event")
-        {
+        if crossterm::event::poll(delay_duration).expect("failed to poll event") {
             match crossterm::event::read().expect("failed to read event") {
                 crossterm::event::Event::FocusGained => {
                     app.pause(false);

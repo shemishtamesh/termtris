@@ -37,10 +37,27 @@ pub const fn tetromino_color_border(tetromino: &TetrominoShape) -> Color {
     }
 }
 
+pub const fn tick_delay(level: u8) -> u64 {
+    match level {
+        1 => 800, // 48 frames between updates assuming 60 fps in miliseconds, rounded
+        2 => 717,
+        3 => 633,
+        4 => 550,
+        5 => 467,
+        6 => 383,
+        7 => 300,
+        8 => 217,
+        9 => 133,
+        10 => 100,
+        11..=13 => 83,
+        12..=16 => 67,
+        17..=19 => 50,
+        20..=29 => 33,
+        _ => 1,
+    }
+}
+
 pub const BLOCK_SIZE: u16 = 2;
 pub const BOARD_SIZE: (usize, usize) = (10, 24);
-
-pub const TICK_DELAY: u64 = 250;
-pub const SOFT_DROP_TICK_DELAY: u64 = TICK_DELAY / 4;
 
 pub const LOCK_DELAY: u8 = 3;
