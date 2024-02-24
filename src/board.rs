@@ -66,7 +66,7 @@ impl Board {
     }
 
     fn clear_lines(&mut self) {
-        let mut additional_lines_cleared = 0;
+        let mut lines_cleared = 0;
         for y in 0..BOARD_SIZE.1 {
             if self.grid[y]
                 .iter()
@@ -81,13 +81,26 @@ impl Board {
                 }
 
                 // update lines cleared counter
-                additional_lines_cleared += 1;
+                lines_cleared += 1;
             }
         }
 
         // update score & level
-        self.lines_cleared += additional_lines_cleared;
-        self.score += additional_lines_cleared * 100 * (self.level + 1) as u128;
+        // self.score += lines_cleared * 100 * (self.level + 1) as u128;
+        self.score += self.level as u128 * match lines_cleared {
+            0 => 0,
+            1 => 100,
+            2 => 300,
+            3 => 500,
+            4 => 800,
+            _ => {
+                panic!(
+                    "please file an issue at https://github.com/shemishtamesh/termtris/issues/new describing how you've cleared {} lines in one tick",
+                    lines_cleared
+                )
+            }
+        };
+        self.lines_cleared += lines_cleared;
         if self.lines_cleared >= self.level as u128 * 10 + 10 {
             self.level += 1;
             self.tick_delay = tick_delay(self.level);
