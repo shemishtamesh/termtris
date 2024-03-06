@@ -108,11 +108,11 @@ impl Board {
             ) {
                 (2, TetrominoShape::T, Some(_)) => {
                     difficult_clear = Some(DifficultClear::TSpinDouble);
-                    1200
-                },
+                    1_200
+                }
                 (3, TetrominoShape::T, Some(_)) => {
                     difficult_clear = Some(DifficultClear::TspinTriple);
-                    1600
+                    1_600
                 }
                 (0, _, _) => 0,
                 (1, _, _) => 100,
@@ -121,7 +121,7 @@ impl Board {
                 (4, _, _) => {
                     difficult_clear = Some(DifficultClear::Tetris);
                     800
-                },
+                }
                 _ => {
                     panic!(
                         "please file an issue at https://github.com/shemishtamesh/termtris/issues/new describing how you've cleared {} lines in one tick",
@@ -133,13 +133,21 @@ impl Board {
             // back to back
             additional_score = (additional_score as f32 * 1.5) as u128;
         }
-        if additional_score > 0 { // lines were cleared
+        if additional_score > 0 {
+            // lines were cleared
             // combo
             additional_score += self.combo_count as u128 * 50 * self.level as u128;
             self.combo_count += 1;
 
             // set the last difficult_clear to the current
             self.last_difficult_clear = difficult_clear;
+        }
+        if self.grid[BOARD_SIZE.1 - 1]
+            .iter()
+            .all(|cell| matches!(cell, Cell::Empty))
+        {
+            // perfect clear
+            additional_score += 5_000;
         }
         self.score += additional_score;
 
