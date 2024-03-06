@@ -33,6 +33,7 @@ pub struct Board {
     current_tetromino: Tetromino,
     held_tetromino: Option<TetrominoShape>,
     already_held: bool,
+    last_rotation_check: Option<usize>, // last rotation check index, if there was any rotation
     score: u128,
     lines_cleared: u128,
     level: u8,
@@ -62,6 +63,9 @@ impl Board {
             self.score += 1;
         }
 
+        // reset the last rotation check
+        self.last_rotation_check = None;
+
         Ok(())
     }
 
@@ -86,19 +90,24 @@ impl Board {
         }
 
         // update score & level
-        // self.score += lines_cleared * 100 * (self.level + 1) as u128;
         self.score += self.level as u128
-            * match lines_cleared {
-                0 => 0,
-                1 => 100,
-                2 => 300,
-                3 => 500,
-                4 => 800,
+            * match (
+                lines_cleared,
+                self.current_tetromino.get_shape(),
+                self.last_rotation_check,
+            ) {
+                (2, TetrominoShape::T, Some(_)) => 1200,
+                (3, TetrominoShape::T, Some(_)) => 1600,
+                (0, _, _) => 0,
+                (1, _, _) => 100,
+                (2, _, _) => 300,
+                (3, _, _) => 500,
+                (4, _, _) => 800,
                 _ => {
                     panic!(
-                    "please file an issue at https://github.com/shemishtamesh/termtris/issues/new describing how you've cleared {} lines in one tick",
-                    lines_cleared
-                )
+                        "please file an issue at https://github.com/shemishtamesh/termtris/issues/new describing how you've cleared {} lines in one tick",
+                        lines_cleared
+                    )
                 }
             };
         self.lines_cleared += lines_cleared;
@@ -133,6 +142,7 @@ impl Board {
     pub fn rotate_current_piece(&mut self, clockwise: bool) {
         for offset_index in 0..5 {
             let full_position_rotated = self.current_tetromino.calc_rotate(clockwise, offset_index);
+            self.last_rotation_check = Some(offset_index);
             match full_position_rotated {
                 Ok(full_position) => {
                     if !self.check_collision(full_position) {
@@ -236,11 +246,11 @@ impl Board {
                 self.grid[*y][*x] = Cell::Occupied(self.current_tetromino.get_shape());
             });
 
-        // spawn new piece
-        self.spawn_next_piece()?;
-
         // clear lines
         self.clear_lines();
+
+        // spawn new piece
+        self.spawn_next_piece()?;
 
         // reenable holding
         self.already_held = false;
@@ -295,6 +305,7 @@ impl Default for Board {
             current_tetromino: starting_bag[0].into(),
             held_tetromino: None,
             already_held: false,
+            last_rotation_check: None, // last rotation check index, if there was any rotation
             tick_delay: tick_delay(1),
             score: 0,
             lines_cleared: 0,
