@@ -7,6 +7,13 @@ use rand::{seq::SliceRandom, thread_rng};
 use ratatui::widgets::canvas::{Painter, Shape};
 use std::num::TryFromIntError;
 
+#[derive(Debug, PartialEq, Eq)]
+enum DifficultClear {
+    Tetris,
+    TSpinDouble,
+    TspinTriple,
+}
+
 #[derive(Debug)]
 pub enum TetrominoPositionError {
     NegativePosition,
@@ -34,6 +41,7 @@ pub struct Board {
     held_tetromino: Option<TetrominoShape>,
     already_held: bool,
     last_rotation_check: Option<usize>, // last rotation check index, if there was any rotation
+    last_difficult_clear: Option<DifficultClear>,
     score: u128,
     lines_cleared: u128,
     level: u8,
@@ -89,20 +97,30 @@ impl Board {
             }
         }
 
-        // update score & level
-        self.score += self.level as u128
+        // update score
+        let mut difficult_clear = None;
+        let mut additional_score = self.level as u128
             * match (
                 lines_cleared,
                 self.current_tetromino.get_shape(),
                 self.last_rotation_check,
             ) {
-                (2, TetrominoShape::T, Some(_)) => 1200,
-                (3, TetrominoShape::T, Some(_)) => 1600,
+                (2, TetrominoShape::T, Some(_)) => {
+                    difficult_clear = Some(DifficultClear::TSpinDouble);
+                    1200
+                },
+                (3, TetrominoShape::T, Some(_)) => {
+                    difficult_clear = Some(DifficultClear::TspinTriple);
+                    1600
+                }
                 (0, _, _) => 0,
                 (1, _, _) => 100,
                 (2, _, _) => 300,
                 (3, _, _) => 500,
-                (4, _, _) => 800,
+                (4, _, _) => {
+                    difficult_clear = Some(DifficultClear::Tetris);
+                    800
+                },
                 _ => {
                     panic!(
                         "please file an issue at https://github.com/shemishtamesh/termtris/issues/new describing how you've cleared {} lines in one tick",
@@ -110,7 +128,19 @@ impl Board {
                     )
                 }
             };
+        if difficult_clear.is_some() && difficult_clear == self.last_difficult_clear {
+            // back to back
+            additional_score = (additional_score as f32 * 1.5) as u128;
+        }
+        if additional_score > 0 {
+            self.last_difficult_clear = difficult_clear;
+        }
+        self.score += additional_score;
+
+        // update lines cleared count
         self.lines_cleared += lines_cleared;
+
+        // update level
         if self.lines_cleared >= self.level as u128 * 10 + 10 {
             self.level += 1;
             self.tick_delay = tick_delay(self.level);
@@ -306,6 +336,7 @@ impl Default for Board {
             held_tetromino: None,
             already_held: false,
             last_rotation_check: None, // last rotation check index, if there was any rotation
+            last_difficult_clear: None,
             tick_delay: tick_delay(1),
             score: 0,
             lines_cleared: 0,
