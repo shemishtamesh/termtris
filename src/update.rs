@@ -48,12 +48,12 @@ pub fn key_event_update(app: &mut App, key_event: KeyEvent) {
         // move to sides
         KeyEvent {
             code: KeyCode::Right | KeyCode::Char('d') | KeyCode::Char('l'),
-            kind: KeyEventKind::Press,
+            kind: KeyEventKind::Press | KeyEventKind::Repeat,
             ..
         } => app.board.move_current_piece(Direction::Right),
         KeyEvent {
             code: KeyCode::Left | KeyCode::Char('a') | KeyCode::Char('h'),
-            kind: KeyEventKind::Press,
+            kind: KeyEventKind::Press | KeyEventKind::Repeat,
             ..
         } => app.board.move_current_piece(Direction::Left),
 
