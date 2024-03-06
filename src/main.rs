@@ -57,5 +57,13 @@ fn main() -> Result<()> {
 
     // Exit the user interface.
     tui.exit()?;
+
+    println!(
+        "score: {}\nlevel: {}\nlines cleared: {}",
+        app.board.get_score(),
+        app.board.get_level(),
+        app.board.get_lines_cleared()
+    );
+
     Ok(())
 }
