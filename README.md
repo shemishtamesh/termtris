@@ -1,6 +1,8 @@
 # termtris
 A tui tetris game.
 
+![gameplay_demo](./examples/demo.gif)
+
 ## requirements
 on linux, some keybaord events wouldn't get handled unless you use one of these terminals:
   * [kitty terminal](https://sw.kovidgoyal.net/kitty/)
