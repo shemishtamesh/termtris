@@ -42,6 +42,7 @@ pub struct Board {
     already_held: bool,
     last_rotation_check: Option<usize>, // last rotation check index, if there was any rotation
     last_difficult_clear: Option<DifficultClear>,
+    combo_count: u8,
     score: u128,
     lines_cleared: u128,
     level: u8,
@@ -132,7 +133,12 @@ impl Board {
             // back to back
             additional_score = (additional_score as f32 * 1.5) as u128;
         }
-        if additional_score > 0 {
+        if additional_score > 0 { // lines were cleared
+            // combo
+            additional_score += self.combo_count as u128 * 50 * self.level as u128;
+            self.combo_count += 1;
+
+            // set the last difficult_clear to the current
             self.last_difficult_clear = difficult_clear;
         }
         self.score += additional_score;
@@ -337,6 +343,7 @@ impl Default for Board {
             already_held: false,
             last_rotation_check: None, // last rotation check index, if there was any rotation
             last_difficult_clear: None,
+            combo_count: 0,
             tick_delay: tick_delay(1),
             score: 0,
             lines_cleared: 0,
