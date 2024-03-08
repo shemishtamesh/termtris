@@ -274,20 +274,6 @@ impl Shape for Tetromino {
 }
 impl Widget for Tetromino {
     fn render(self, area: Rect, buf: &mut Buffer) {
-        // f.render_widget(
-        //     canvas::Canvas::default()
-        //         .block(Block::default())
-        //         .x_bounds([0.0, (BOARD_SIZE.0) as f64])
-        //         .y_bounds([0.0, (BOARD_SIZE.1) as f64])
-        //         .marker(Marker::HalfBlock)
-        //         .paint(|ctx| ctx.draw(&app.board)),
-        //     ratatui::prelude::Rect::new(
-        //         (f.size().width / 2) - (BOARD_SIZE.0 / 2) as u16,
-        //         (f.size().height / 2) - (BOARD_SIZE.1 / 4) as u16,
-        //         (BOARD_SIZE.0 + 2) as u16,
-        //         ((BOARD_SIZE.1 / 2) + 2) as u16,
-        //     ),
-        // );
         Canvas::default()
             .block(
                 Block::default()
@@ -299,5 +285,66 @@ impl Widget for Tetromino {
             .marker(Marker::HalfBlock)
             .paint(|ctx| ctx.draw(&self))
             .render(area, buf);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_rotate() {
+        let mut tetromino = Tetromino::new(TetrominoShape::Z);
+        tetromino.rotate(false, 0).expect("failed to rotate Z");
+        assert_eq!(tetromino.orientation, [(-1, 1), (-1, 0), (0, 0), (0, -1)]);
+
+        let mut tetromino = Tetromino::new(TetrominoShape::O);
+        tetromino.rotate(false, 0).expect("failed to rotate O");
+        assert_eq!(tetromino.orientation, [(-1, 0), (0, 0), (-1, -1), (0, -1)]);
+    }
+
+    #[test]
+    fn test_get_full_position() {
+        let tetromino = Tetromino::new(TetrominoShape::I);
+        let full_position = tetromino
+            .get_full_position()
+            .expect("failed to get I full position");
+        assert_eq!(full_position, [(3, 2), (4, 2), (5, 2), (6, 2)]);
+
+        let tetromino = Tetromino::new(TetrominoShape::J);
+        let full_position = tetromino
+            .get_full_position()
+            .expect("failed to get J full position");
+        assert_eq!(full_position, [(3, 1), (3, 2), (4, 2), (5, 2)]);
+
+        let tetromino = Tetromino::new(TetrominoShape::T);
+        let full_position = tetromino
+            .get_full_position()
+            .expect("failed to get T full position");
+        assert_eq!(full_position, [(3, 2), (4, 2), (4, 1), (5, 2)]);
+
+        let tetromino = Tetromino::new(TetrominoShape::Z);
+        let full_position = tetromino
+            .get_full_position()
+            .expect("failed to get Z full position");
+        assert_eq!(full_position, [(3, 1), (4, 1), (4, 2), (5, 2)]);
+
+        let tetromino = Tetromino::new(TetrominoShape::L);
+        let full_position = tetromino
+            .get_full_position()
+            .expect("failed to get L full position");
+        assert_eq!(full_position, [(3, 2), (4, 2), (5, 2), (5, 1)]);
+
+        let tetromino = Tetromino::new(TetrominoShape::S);
+        let full_position = tetromino
+            .get_full_position()
+            .expect("failed to get S full position");
+        assert_eq!(full_position, [(3, 2), (4, 2), (4, 1), (5, 1)]);
+
+        let tetromino = Tetromino::new(TetrominoShape::O);
+        let full_position = tetromino
+            .get_full_position()
+            .expect("failed to get O full position");
+        assert_eq!(full_position, [(4, 3), (4, 4), (5, 3), (5, 4)]);
     }
 }

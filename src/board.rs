@@ -446,3 +446,14 @@ fn new_bag() -> [TetrominoShape; 7] {
     bag.shuffle(&mut thread_rng());
     bag
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_new_bag() {
+        let bag = new_bag();
+        assert_eq!(bag.len(), 7);
+    }
+}
