@@ -7,6 +7,42 @@ use ratatui::{
 use crate::{app::App, config::BOARD_SIZE, tetromino::Tetromino};
 
 pub fn render(app: &mut App, frame: &mut Frame) {
+    // paused status
+    if app.paused {
+        let paused_message = "\
+            exit: ESC, q, CONTROL + c\n\
+            restart: r,\n\
+            hold: c,\n\
+            move right: d, l, right arrow\n\
+            move left: a, h, left arrow\n\
+            rotate clockwise: w, k, up arrow\n\
+            rotate counter-clockwise: z, j, down arrow\n\
+            hard drop: space\n\
+            soft drop: s, j, down arrow\n\
+            pause: p\
+        ";
+        let message_width = paused_message.lines().map(|line| line.len()).max().unwrap() as u16;
+        let message_height = paused_message.lines().count() as u16;
+        frame.render_widget(
+            Paragraph::new(paused_message)
+                .block(
+                    Block::default()
+                        .title_alignment(Alignment::Center)
+                        .borders(Borders::ALL)
+                        .border_type(BorderType::Rounded)
+                        .title("paused"),
+                )
+                .alignment(Alignment::Left),
+            ratatui::prelude::Rect::new(
+                (frame.size().width / 2) - message_width / 2 - 1,
+                (frame.size().height / 2) - message_height / 2 - 1,
+                message_width + 2,
+                message_height + 2,
+            ),
+        );
+        return;
+    }
+
     // board
     frame.render_widget(
         canvas::Canvas::default()
