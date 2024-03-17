@@ -13,6 +13,6 @@ on linux, some keybaord events wouldn't get handled unless you use one of these 
 ```bash
 $ git clone https://github.com/shemishtamesh/termtris
 $ cd termtris
-$ cargo build --release
+$ cargo run --release
 ```
 
