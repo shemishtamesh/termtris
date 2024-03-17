@@ -116,8 +116,13 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                     Block::default()
                         .borders(borders)
                         .border_type(border_type)
-                        .title(format!("{}th", i)),
-                )
+                        .title(match i {
+                                    1 => {format!("{}st", i)}
+                                    2 => {format!("{}nd", i)}
+                                    3 => {format!("{}rd", i)}
+                                    _ => {format!("{}th", i)}
+                                })
+                        )
                 .paint(move |ctx| ctx.draw(&tetromino_to_preview)),
             ratatui::prelude::Rect::new(
                 next_preview_base_x,
