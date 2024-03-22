@@ -6,6 +6,7 @@ use ratatui::{
         Block, BorderType, Borders, Widget,
     },
 };
+use serde::Deserialize;
 
 use std::ops::{Add, AddAssign};
 
@@ -49,7 +50,7 @@ impl Into<isize> for Direction {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Deserialize)]
 pub enum TetrominoShape {
     J,
     L,
