@@ -20,3 +20,6 @@ $ cd termtris
 $ cargo run --release
 ```
 
+## configuration
+you can find the default configuration file at `examples/config.ron`
+

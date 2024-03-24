@@ -1,7 +1,4 @@
-use crate::config::{
-    tetromino_color, tetromino_color_border, tetromino_color_ghost, tick_delay, BOARD_SIZE,
-    LOCK_DELAY,
-};
+use crate::config::CONFIG;
 use crate::tetromino::{Direction, Tetromino, TetrominoShape};
 use rand::{seq::SliceRandom, thread_rng};
 use ratatui::widgets::canvas::{Painter, Shape};
@@ -33,7 +30,7 @@ pub enum Cell {
 
 #[derive(Debug)]
 pub struct Board {
-    grid: [[Cell; BOARD_SIZE.0]; BOARD_SIZE.1],
+    grid: Vec<Vec<Cell>>,
     bag: [TetrominoShape; 7],
     bag_index: usize,
     next_bag: [TetrominoShape; 7],
@@ -67,7 +64,7 @@ impl Board {
         }
         self.current_tetromino.update();
 
-        if self.tick_delay != tick_delay(self.level) {
+        if self.tick_delay != CONFIG.tick_delay[&self.level] {
             // soft dropping
             self.score += 1;
         }
@@ -80,17 +77,17 @@ impl Board {
 
     fn clear_lines(&mut self) {
         let mut lines_cleared = 0;
-        for y in 0..BOARD_SIZE.1 {
+        for y in 0..CONFIG.board_size.1 {
             if self.grid[y]
                 .iter()
                 .all(|cell| matches!(cell, Cell::Occupied(_)))
             {
                 // clear line
-                self.grid[y] = [Cell::Empty; BOARD_SIZE.0];
+                self.grid[y] = vec![Cell::Empty; CONFIG.board_size.0];
 
                 // move all lines above down
                 for y_to_move in (1..y + 1).rev() {
-                    self.grid[y_to_move] = self.grid[y_to_move - 1];
+                    self.grid[y_to_move] = self.grid[y_to_move - 1].clone();
                 }
 
                 // update lines cleared counter
@@ -142,7 +139,7 @@ impl Board {
             // set the last difficult_clear to the current
             self.last_difficult_clear = difficult_clear;
         }
-        if self.grid[BOARD_SIZE.1 - 1]
+        if self.grid[CONFIG.board_size.1 - 1]
             .iter()
             .all(|cell| matches!(cell, Cell::Empty))
         {
@@ -157,7 +154,7 @@ impl Board {
         // update level
         if self.lines_cleared >= self.level as u128 * 10 + 10 {
             self.level += 1;
-            self.tick_delay = tick_delay(self.level);
+            self.tick_delay = CONFIG.tick_delay[&self.level];
         }
     }
 
@@ -177,8 +174,8 @@ impl Board {
 
     fn check_collision(&self, new_full_position: [(usize, usize); 4]) -> bool {
         new_full_position.iter().any(|(x, y)| {
-            *x >= BOARD_SIZE.0
-                || *y >= BOARD_SIZE.1
+            *x >= CONFIG.board_size.0
+                || *y >= CONFIG.board_size.1
                 || matches!(self.grid[*y][*x], Cell::Occupied(_))
         })
     }
@@ -221,10 +218,10 @@ impl Board {
 
     pub fn soft_drop(&mut self, activate: bool) {
         if activate {
-            self.tick_delay = tick_delay(self.level) / 8;
+            self.tick_delay = CONFIG.tick_delay[&self.level] / 8;
             return;
         }
-        self.tick_delay = tick_delay(self.level);
+        self.tick_delay = CONFIG.tick_delay[&self.level];
     }
 
     pub fn hard_drop(&mut self) -> Result<(), TetrominoPositionError> {
@@ -233,7 +230,7 @@ impl Board {
         // increase score
         self.score += height as u128 as u128 * 2;
 
-        for _ in 0..(self.calc_relative_height()? + LOCK_DELAY as usize) {
+        for _ in 0..(self.calc_relative_height()? + CONFIG.lock_delay as usize) {
             let _ = self.update();
         }
         Ok(())
@@ -245,12 +242,12 @@ impl Board {
             .get_full_position()?
             .iter()
             .map(|(x_pos, y_pos)| {
-                for y in (y_pos + 1)..BOARD_SIZE.1 {
+                for y in (y_pos + 1)..CONFIG.board_size.1 {
                     if matches!(self.grid[y][*x_pos], Cell::Occupied(_)) {
                         return y - y_pos - 1;
                     }
                 }
-                BOARD_SIZE.1 - y_pos - 1
+                CONFIG.board_size.1 - y_pos - 1
             })
             .min()
             .expect("current tetromino doesn't have a position");
@@ -342,7 +339,7 @@ impl Default for Board {
     fn default() -> Self {
         let starting_bag = new_bag();
         Board {
-            grid: [[Cell::Empty; BOARD_SIZE.0]; BOARD_SIZE.1],
+            grid: vec![vec![Cell::Empty; CONFIG.board_size.0]; CONFIG.board_size.1],
             bag: starting_bag,
             bag_index: 0,
             next_bag: new_bag(),
@@ -352,7 +349,7 @@ impl Default for Board {
             last_rotation_check: None, // last rotation check index, if there was any rotation
             last_difficult_clear: None,
             combo_count: 0,
-            tick_delay: tick_delay(1),
+            tick_delay: CONFIG.tick_delay[&1],
             score: 0,
             lines_cleared: 0,
             level: 1,
@@ -376,25 +373,25 @@ impl Shape for Board {
         for y in 0..start_continuous {
             let color;
             if let Some(held) = self.held_tetromino {
-                color = tetromino_color_border(&held);
+                color = CONFIG.border_color[&held];
             } else {
-                color = tetromino_color_border(&preview_piece);
+                color = CONFIG.border_color[&preview_piece];
             }
             if y % 2 != 0 {
                 painter.paint(0, y + 1, color);
-                painter.paint(BOARD_SIZE.0 + 1, y + 1, color);
+                painter.paint(CONFIG.board_size.0 + 1, y + 1, color);
             }
         }
-        for y in start_continuous..BOARD_SIZE.1 {
-            painter.paint(0, y + 1, tetromino_color_border(&preview_piece));
+        for y in start_continuous..CONFIG.board_size.1 {
+            painter.paint(0, y + 1, CONFIG.border_color[&preview_piece]);
             painter.paint(
-                BOARD_SIZE.0 + 1,
+                CONFIG.board_size.0 + 1,
                 y + 1,
-                tetromino_color_border(&preview_piece),
+                CONFIG.border_color[&preview_piece],
             );
         }
-        for x in 0..BOARD_SIZE.0 + 2 {
-            painter.paint(x, BOARD_SIZE.1 + 1, tetromino_color_border(&preview_piece));
+        for x in 0..CONFIG.board_size.0 + 2 {
+            painter.paint(x, CONFIG.board_size.1 + 1, CONFIG.border_color[&preview_piece]);
         }
 
         // draw the board
@@ -405,7 +402,7 @@ impl Shape for Board {
                     painter.paint(
                         x + 1,
                         y + 1,
-                        tetromino_color(&self.current_tetromino.get_shape()),
+                        CONFIG.tetromino_color[&self.current_tetromino.get_shape()],
                     );
                     continue;
                 }
@@ -418,7 +415,7 @@ impl Shape for Board {
                     painter.paint(
                         x + 1,
                         y + 1,
-                        tetromino_color_ghost(&self.current_tetromino.get_shape()),
+                        CONFIG.ghost_color[&self.current_tetromino.get_shape()],
                     );
                     continue;
                 }
@@ -426,7 +423,7 @@ impl Shape for Board {
                 // draw the existing board
                 match cell {
                     Cell::Empty => {}
-                    Cell::Occupied(shape) => painter.paint(x + 1, y + 1, tetromino_color(shape)),
+                    Cell::Occupied(shape) => painter.paint(x + 1, y + 1, CONFIG.tetromino_color[shape]),
                 }
             }
         }
