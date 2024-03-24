@@ -4,7 +4,7 @@ use ratatui::{
     widgets::{canvas, Block, BorderType, Borders, Paragraph},
 };
 
-use crate::{app::App, config::BOARD_SIZE, tetromino::Tetromino};
+use crate::{app::App, config::CONFIG, tetromino::Tetromino};
 
 pub fn render(app: &mut App, frame: &mut Frame) {
     // paused status
@@ -47,15 +47,15 @@ pub fn render(app: &mut App, frame: &mut Frame) {
     frame.render_widget(
         canvas::Canvas::default()
             .block(Block::default())
-            .x_bounds([0.0, (BOARD_SIZE.0) as f64])
-            .y_bounds([0.0, (BOARD_SIZE.1) as f64])
+            .x_bounds([0.0, (CONFIG.board_size.0) as f64])
+            .y_bounds([0.0, (CONFIG.board_size.1) as f64])
             .marker(Marker::HalfBlock)
             .paint(|ctx| ctx.draw(&app.board)),
         ratatui::prelude::Rect::new(
-            (frame.size().width / 2) - (BOARD_SIZE.0 / 2) as u16,
-            (frame.size().height / 2) - (BOARD_SIZE.1 / 4) as u16,
-            (BOARD_SIZE.0 + 2) as u16,
-            ((BOARD_SIZE.1 / 2) + 2) as u16,
+            (frame.size().width / 2) - (CONFIG.board_size.0 / 2) as u16,
+            (frame.size().height / 2) - (CONFIG.board_size.1 / 4) as u16,
+            (CONFIG.board_size.0 + 2) as u16,
+            ((CONFIG.board_size.1 / 2) + 2) as u16,
         ),
     );
 
@@ -87,8 +87,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         )
         .alignment(Alignment::Center),
         ratatui::prelude::Rect::new(
-            (frame.size().width / 2) - (BOARD_SIZE.0 / 2) as u16 - block_len - 2,
-            (frame.size().height / 2) - (BOARD_SIZE.1 / 4) as u16 + 8,
+            (frame.size().width / 2) - (CONFIG.board_size.0 / 2) as u16 - block_len - 2,
+            (frame.size().height / 2) - (CONFIG.board_size.1 / 4) as u16 + 8,
             block_len + 2,
             5,
         ),
@@ -105,8 +105,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
         .x_bounds(bounds)
         .y_bounds(bounds)
         .marker(marker);
-    let next_preview_base_x = 2 + (frame.size().width / 2) + (BOARD_SIZE.0 / 2) as u16;
-    let next_preview_base_y = 1 + (frame.size().height / 2) - (BOARD_SIZE.1 / 4) as u16;
+    let next_preview_base_x = 2 + (frame.size().width / 2) + (CONFIG.board_size.0 / 2) as u16;
+    let next_preview_base_y = 1 + (frame.size().height / 2) - (CONFIG.board_size.1 / 4) as u16;
     for i in 1..5 {
         let tetromino_to_preview = Tetromino::new(app.board.calc_next_piece(i));
         frame.render_widget(
@@ -155,8 +155,8 @@ pub fn render(app: &mut App, frame: &mut Frame) {
                     .paint(|ctx| ctx.draw(&tetromino_to_preview)),
                 // .paint(move |ctx: canvas::Context| ctx.draw()),
                 ratatui::prelude::Rect::new(
-                    (frame.size().width / 2) - 1 - (BOARD_SIZE.0) as u16,
-                    1 + (frame.size().height / 2) - (BOARD_SIZE.1 / 4) as u16,
+                    (frame.size().width / 2) - 1 - (CONFIG.board_size.0) as u16,
+                    1 + (frame.size().height / 2) - (CONFIG.board_size.1 / 4) as u16,
                     6,
                     3,
                 ),

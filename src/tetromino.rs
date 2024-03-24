@@ -6,12 +6,13 @@ use ratatui::{
         Block, BorderType, Borders, Widget,
     },
 };
+use serde::Deserialize;
 
 use std::ops::{Add, AddAssign};
 
 use crate::{
     board::TetrominoPositionError,
-    config::{tetromino_color, BOARD_SIZE, LOCK_DELAY},
+    config::CONFIG,
 };
 
 // y component is inverted because (0, 0) is in the top left
@@ -49,7 +50,7 @@ impl Into<isize> for Direction {
     }
 }
 
-#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Hash, PartialEq, Eq, Deserialize)]
 pub enum TetrominoShape {
     J,
     L,
@@ -103,52 +104,52 @@ impl Tetromino {
         match shape {
             TetrominoShape::J => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
+                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
                 orientation: [(-1, -1), (-1, 0), (0, 0), (1, 0)],
                 rotation_index: 0,
-                lock_delay: LOCK_DELAY,
+                lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::L => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
+                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (1, 0), (1, -1)],
                 rotation_index: 0,
-                lock_delay: LOCK_DELAY,
+                lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::S => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
+                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (0, -1), (1, -1)],
                 rotation_index: 0,
-                lock_delay: LOCK_DELAY,
+                lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::Z => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
+                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
                 orientation: [(-1, -1), (0, -1), (0, 0), (1, 0)],
                 rotation_index: 0,
-                lock_delay: LOCK_DELAY,
+                lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::O => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 4),
+                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 4),
                 orientation: [(0, -1), (0, 0), (1, -1), (1, 0)],
                 rotation_index: 0,
-                lock_delay: LOCK_DELAY,
+                lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::T => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
+                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (0, -1), (1, 0)],
                 rotation_index: 0,
-                lock_delay: LOCK_DELAY,
+                lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::I => Tetromino {
                 shape,
-                pos: Position::new(BOARD_SIZE.0 / 2 - 1, 2),
+                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
                 orientation: [(-1, 0), (0, 0), (1, 0), (2, 0)],
                 rotation_index: 0,
-                lock_delay: LOCK_DELAY,
+                lock_delay: CONFIG.lock_delay,
             },
         }
     }
@@ -267,7 +268,7 @@ impl Shape for Tetromino {
             painter.paint(
                 (x + 1) as usize,
                 (y + 1) as usize,
-                tetromino_color(&self.shape),
+                CONFIG.tetromino_color[&self.shape],
             );
         }
     }
