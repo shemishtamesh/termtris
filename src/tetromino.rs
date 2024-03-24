@@ -101,52 +101,53 @@ pub struct Tetromino {
 }
 impl Tetromino {
     pub fn new(shape: TetrominoShape) -> Tetromino {
+        let initial_position = Position::new(CONFIG.board_size.0 / 2 - 1, 2);
         match shape {
             TetrominoShape::J => Tetromino {
                 shape,
-                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
+                pos: initial_position,
                 orientation: [(-1, -1), (-1, 0), (0, 0), (1, 0)],
                 rotation_index: 0,
                 lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::L => Tetromino {
                 shape,
-                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
+                pos: initial_position,
                 orientation: [(-1, 0), (0, 0), (1, 0), (1, -1)],
                 rotation_index: 0,
                 lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::S => Tetromino {
                 shape,
-                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
+                pos: initial_position,
                 orientation: [(-1, 0), (0, 0), (0, -1), (1, -1)],
                 rotation_index: 0,
                 lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::Z => Tetromino {
                 shape,
-                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
+                pos: initial_position,
                 orientation: [(-1, -1), (0, -1), (0, 0), (1, 0)],
                 rotation_index: 0,
                 lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::O => Tetromino {
                 shape,
-                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 4),
+                pos: initial_position,
                 orientation: [(0, -1), (0, 0), (1, -1), (1, 0)],
                 rotation_index: 0,
                 lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::T => Tetromino {
                 shape,
-                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
+                pos: initial_position,
                 orientation: [(-1, 0), (0, 0), (0, -1), (1, 0)],
                 rotation_index: 0,
                 lock_delay: CONFIG.lock_delay,
             },
             TetrominoShape::I => Tetromino {
                 shape,
-                pos: Position::new(CONFIG.board_size.0 / 2 - 1, 2),
+                pos: initial_position,
                 orientation: [(-1, 0), (0, 0), (1, 0), (2, 0)],
                 rotation_index: 0,
                 lock_delay: CONFIG.lock_delay,
@@ -266,8 +267,8 @@ impl Shape for Tetromino {
     fn draw(&self, painter: &mut Painter) {
         for (x, y) in self.orientation {
             painter.paint(
-                (x + 1) as usize,
-                (y + 1) as usize,
+                x as usize,
+                y as usize,
                 CONFIG.tetromino_color[&self.shape],
             );
         }
