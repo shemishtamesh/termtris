@@ -1,6 +1,8 @@
 pub mod app;
 pub mod board;
 pub mod config;
+#[cfg(debug_assertions)]
+pub mod debug;
 pub mod tetromino;
 pub mod tui;
 pub mod ui;

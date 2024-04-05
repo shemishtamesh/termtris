@@ -10,10 +10,7 @@ use serde::Deserialize;
 
 use std::ops::{Add, AddAssign};
 
-use crate::{
-    board::TetrominoPositionError,
-    config::CONFIG,
-};
+use crate::{board::TetrominoPositionError, config::CONFIG};
 
 // y component is inverted because (0, 0) is in the top left
 const O_ROTATION_OFFSETS: [[(isize, isize); 5]; 4] = [
@@ -267,8 +264,8 @@ impl Shape for Tetromino {
     fn draw(&self, painter: &mut Painter) {
         for (x, y) in self.orientation {
             painter.paint(
-                x as usize,
-                y as usize,
+                (x + 1) as usize, // add 1 because of the border in previews
+                (y + 1) as usize,
                 CONFIG.tetromino_color[&self.shape],
             );
         }

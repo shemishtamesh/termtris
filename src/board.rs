@@ -391,7 +391,11 @@ impl Shape for Board {
             );
         }
         for x in 0..CONFIG.board_size.0 + 2 {
-            painter.paint(x, CONFIG.board_size.1 + 1, CONFIG.border_color[&preview_piece]);
+            painter.paint(
+                x,
+                CONFIG.board_size.1 + 1,
+                CONFIG.border_color[&preview_piece],
+            );
         }
 
         // draw the board
@@ -423,7 +427,9 @@ impl Shape for Board {
                 // draw the existing board
                 match cell {
                     Cell::Empty => {}
-                    Cell::Occupied(shape) => painter.paint(x + 1, y + 1, CONFIG.tetromino_color[shape]),
+                    Cell::Occupied(shape) => {
+                        painter.paint(x + 1, y + 1, CONFIG.tetromino_color[shape])
+                    }
                 }
             }
         }

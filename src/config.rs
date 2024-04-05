@@ -1,10 +1,12 @@
 use crate::tetromino::TetrominoShape;
-use ratatui::style::Color;
-use serde::Deserialize;
-// use toml::from_str;
 use lazy_static::lazy_static;
+use ratatui::style::Color;
 use ron::from_str;
+use serde::Deserialize;
 use std::collections::HashMap;
+
+pub const CONFIG_FILE_NAME: &str = "config.ron";
+const PROJECT_NAME: &str = "termtris";
 
 lazy_static! {
     pub static ref CONFIG: Config = Config::default();
@@ -12,6 +14,10 @@ lazy_static! {
 
 fn default_board_size() -> (usize, usize) {
     (10, 24)
+}
+
+fn default_number_of_previews() -> usize {
+    4
 }
 
 fn default_lock_delay() -> u8 {
@@ -77,6 +83,8 @@ fn default_border_color() -> HashMap<TetrominoShape, Color> {
 pub struct Config {
     #[serde(default = "default_board_size")]
     pub board_size: (usize, usize),
+    #[serde(default = "default_number_of_previews")]
+    pub number_of_previews: usize,
     #[serde(default = "default_lock_delay")]
     pub lock_delay: u8,
     #[serde(default = "default_tick_delay")]
@@ -91,20 +99,14 @@ pub struct Config {
 
 impl Default for Config {
     fn default() -> Self {
-        // find the config file
-        let config_path = match std::env::var("XDG_CONFIG_HOME") {
-            Ok(path) => path.to_owned() + "/termtris/config.ron",
-            Err(_) => match std::env::var("HOME") {
-                Ok(path) => path + "/.config/termtris/config.ron",
-                Err(_) => "./termtris/config.ron".to_string(),
-            },
-        };
+        let config_path = find_config_file();
 
         // read config file
         match std::fs::read_to_string(config_path) {
             Ok(config) => from_str(&config).expect("Failed to parse config"),
             Err(_) => Config {
                 board_size: default_board_size(),
+                number_of_previews: default_number_of_previews(),
                 lock_delay: default_lock_delay(),
                 tick_delay: default_tick_delay(),
                 tetromino_color: default_tetromino_color(),
@@ -112,5 +114,15 @@ impl Default for Config {
                 border_color: default_border_color(),
             },
         }
+    }
+}
+
+pub fn find_config_file() -> String {
+    match std::env::var("XDG_CONFIG_HOME") {
+        Ok(path) => path.to_owned() + &format!("/{PROJECT_NAME}/{CONFIG_FILE_NAME}"),
+        Err(_) => match std::env::var("HOME") {
+            Ok(path) => path + &format!("/.config/{PROJECT_NAME}/{CONFIG_FILE_NAME}"),
+            Err(_) => format!("./{PROJECT_NAME}/{CONFIG_FILE_NAME}"),
+        },
     }
 }

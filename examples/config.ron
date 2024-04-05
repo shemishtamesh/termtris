@@ -1,5 +1,6 @@
 (
     board_size: (10, 24),
+    number_of_previews: 4,
     lock_delay: 3,
     tick_delay: {
         1: 800,
