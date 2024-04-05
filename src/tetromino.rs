@@ -344,6 +344,6 @@ mod tests {
         let full_position = tetromino
             .get_full_position()
             .expect("failed to get O full position");
-        assert_eq!(full_position, [(4, 3), (4, 4), (5, 3), (5, 4)]);
+        assert_eq!(full_position, [(4, 1), (4, 2), (5, 1), (5, 2)]);
     }
 }

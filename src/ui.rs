@@ -235,6 +235,6 @@ mod tests {
     #[test]
     fn test_calculate_next_preview_positions() {
         use super::{calculate_next_preview_positions, Rect};
-        calculate_next_preview_positions(4, Rect::new(0, 0, 0, 0), 0, 0);
+        calculate_next_preview_positions(7, Rect::new(0, 0, 40, 40), 4, 4);
     }
 }
