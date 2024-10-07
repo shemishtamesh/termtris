@@ -2,14 +2,25 @@ use crate::tetromino::TetrominoShape;
 use lazy_static::lazy_static;
 use ratatui::style::Color;
 use ron::from_str;
-use serde::Deserialize;
+use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 
 pub const CONFIG_FILE_NAME: &str = "config.ron";
 const PROJECT_NAME: &str = "termtris";
 
+#[derive(Serialize, Deserialize, Debug)]
+pub enum BagType {
+    Seven,
+    Fourteen,
+    Classic,
+}
+
 lazy_static! {
     pub static ref CONFIG: Config = Config::default();
+}
+
+fn default_bag_type() -> BagType {
+    BagType::Seven
 }
 
 fn default_board_size() -> (usize, usize) {
@@ -95,6 +106,8 @@ pub struct Config {
     pub ghost_color: HashMap<TetrominoShape, Color>,
     #[serde(default = "default_border_color")]
     pub border_color: HashMap<TetrominoShape, Color>,
+    #[serde(default = "default_bag_type")]
+    pub bag_type: BagType,
 }
 
 impl Default for Config {
@@ -112,6 +125,7 @@ impl Default for Config {
                 tetromino_color: default_tetromino_color(),
                 ghost_color: default_ghost_color(),
                 border_color: default_border_color(),
+                bag_type: default_bag_type(),
             },
         }
     }
