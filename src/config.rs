@@ -2,13 +2,13 @@ use crate::tetromino::TetrominoShape;
 use lazy_static::lazy_static;
 use ratatui::style::Color;
 use ron::from_str;
-use serde::{Serialize, Deserialize};
+use serde::Deserialize;
 use std::collections::HashMap;
 
 pub const CONFIG_FILE_NAME: &str = "config.ron";
 const PROJECT_NAME: &str = "termtris";
 
-#[derive(PartialEq, Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Deserialize, Debug)]
 pub enum BagType {
     Seven,
     Fourteen,
