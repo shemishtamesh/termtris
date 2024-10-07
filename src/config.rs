@@ -8,7 +8,7 @@ use std::collections::HashMap;
 pub const CONFIG_FILE_NAME: &str = "config.ron";
 const PROJECT_NAME: &str = "termtris";
 
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(PartialEq, Serialize, Deserialize, Debug)]
 pub enum BagType {
     Seven,
     Fourteen,
@@ -91,7 +91,7 @@ fn default_border_color() -> HashMap<TetrominoShape, Color> {
     ])
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(PartialEq, Debug, Deserialize)]
 pub struct Config {
     #[serde(default = "default_board_size")]
     pub board_size: (usize, usize),
@@ -139,5 +139,30 @@ pub fn find_config_file() -> String {
             Ok(path) => path + &format!("/.config/{PROJECT_NAME}/{CONFIG_FILE_NAME}"),
             Err(_) => format!("./{PROJECT_NAME}/{CONFIG_FILE_NAME}"),
         },
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_read_config() {
+        let default_config = Config {
+            board_size: default_board_size(),
+            number_of_previews: default_number_of_previews(),
+            lock_delay: default_lock_delay(),
+            tick_delay: default_tick_delay(),
+            tetromino_color: default_tetromino_color(),
+            ghost_color: default_ghost_color(),
+            border_color: default_border_color(),
+            bag_type: default_bag_type(),
+        };
+
+        let config_text: String = std::fs::read_to_string("./examples/config.ron")
+            .expect("Example config file not found");
+        let config: Config = from_str(&config_text).expect("Failed to parse config");
+
+        assert_eq!(config, default_config);
     }
 }
