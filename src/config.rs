@@ -13,6 +13,7 @@ pub enum BagType {
     Seven,
     Fourteen,
     Classic,
+    Pairs,
 }
 
 lazy_static! {

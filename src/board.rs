@@ -1,5 +1,6 @@
 use crate::config::{BagType, CONFIG};
 use crate::tetromino::{Direction, Tetromino, TetrominoShape};
+use rand::rngs::ThreadRng;
 use rand::{seq::SliceRandom, thread_rng};
 use ratatui::widgets::canvas::{Painter, Shape};
 use std::num::TryFromIntError;
@@ -441,6 +442,7 @@ fn new_bag(bag_type: &BagType) -> Vec<TetrominoShape> {
         BagType::Classic => classic_bag(),
         BagType::Fourteen => fourteen_bag(),
         BagType::Seven => seven_bag(),
+        BagType::Pairs => pairs_bag(),
     }
 }
 
@@ -455,6 +457,28 @@ fn seven_bag() -> Vec<TetrominoShape> {
         TetrominoShape::Z,
     ];
     bag.shuffle(&mut thread_rng());
+    bag
+}
+
+fn pairs_bag() -> Vec<TetrominoShape> {
+    let mut bag: Vec<TetrominoShape> = Vec::with_capacity(14);
+    let mut rng: ThreadRng = thread_rng();
+
+    for _ in 0..7 {
+        let random_number = rand::Rng::gen_range(&mut rng, 0..7);
+        let random_tetromino = match random_number {
+            0 => TetrominoShape::I,
+            1 => TetrominoShape::J,
+            2 => TetrominoShape::L,
+            3 => TetrominoShape::O,
+            4 => TetrominoShape::S,
+            5 => TetrominoShape::T,
+            6 => TetrominoShape::Z,
+            _ => unreachable!(),
+        };
+        bag.push(random_tetromino); // Push the randomly selected Tetromino into the Vec twice
+        bag.push(random_tetromino);
+    }
     bag
 }
 
@@ -480,8 +504,8 @@ fn fourteen_bag() -> Vec<TetrominoShape> {
 }
 
 fn classic_bag() -> Vec<TetrominoShape> {
-    let mut bag = Vec::with_capacity(7); // Create a Vec with a capacity of 7
-    let mut rng = thread_rng();
+    let mut bag: Vec<TetrominoShape> = Vec::with_capacity(7); // Create a Vec with a capacity of 7
+    let mut rng: ThreadRng = thread_rng();
 
     for _ in 0..7 {
         let random_number = rand::Rng::gen_range(&mut rng, 0..7); // Changed to use the rng
@@ -507,6 +531,9 @@ mod tests {
     #[test]
     fn test_new_bag() {
         let bag = new_bag(&CONFIG.bag_type);
-        assert_eq!(bag.len(), 7);
+        match CONFIG.bag_type {
+            BagType::Classic | BagType::Seven => assert_eq!(bag.len(), 7),
+            BagType::Fourteen | BagType::Pairs => assert_eq!(bag.len(), 14),
+        }
     }
 }
