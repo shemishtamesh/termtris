@@ -45,4 +45,5 @@
         T: Rgb(96, 32, 96),
         Z: Rgb(191, 64, 64),
     },
+    bag_type: Seven
 )
