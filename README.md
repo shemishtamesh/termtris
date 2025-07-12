@@ -19,6 +19,10 @@ $ git clone https://github.com/shemishtamesh/termtris
 $ cd termtris
 $ cargo run --release
 ```
+or using nix:
+```bash
+$ nix run github:shemishtamesh/termtris
+```
 
 ## configuration
 you can find the default configuration file at `examples/config.ron`
