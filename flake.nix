@@ -1,7 +1,7 @@
 {
   description = "Rust flake";
   inputs = {
-    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable"; # or whatever vers
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
   };
 
   outputs =
